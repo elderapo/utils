@@ -1,2 +1,2 @@
-export * from "./chronologicalAsyncIteratorQueue";
+export * from "./createChronologicalAsyncIteratorQueue";
 export * from "./createIterableFromIterator";

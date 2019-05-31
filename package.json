@@ -62,7 +62,8 @@
     "coveragePathIgnorePatterns": [
       "/node_modules/",
       "/test/",
-      "/index.ts"
+      "/test-utils/",
+      "index.ts"
     ],
     "coverageThreshold": {
       "global": {

@@ -2,6 +2,7 @@ import { waitImmediate } from "./waitImmediate";
 
 describe("waitImmediate", () => {
   it("returns instance of Promise", () => {
+    // tslint:disable-next-line
     expect(waitImmediate()).toBeInstanceOf(Promise);
   });
 

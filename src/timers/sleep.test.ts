@@ -2,6 +2,7 @@ import { sleep } from "./sleep";
 
 describe("sleep", () => {
   it("returns instance of Promise", () => {
+    // tslint:disable-next-line
     expect(sleep(100)).toBeInstanceOf(Promise);
   });
 

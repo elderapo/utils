@@ -1,6 +1,4 @@
-/* istanbul ignore file */
-
-import { sleep } from "../timers";
+import { sleep } from "../../timers";
 
 export const createAsyncIterablesTestSuite = () => {
   const callResults: string[] = [];

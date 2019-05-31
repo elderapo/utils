@@ -1,14 +1,19 @@
-import { createAsyncIterablesTestSuite } from "./testUtils";
-import { chronologicalAsyncIteratorQueue } from "./chronologicalAsyncIteratorQueue";
-import { createIterableFromIterator } from "./createIterableFromIterator";
-import { sleep } from "../timers";
 import { expectAsyncThrow } from "../test-utils";
+import { createChronologicalAsyncIteratorQueue } from "./createChronologicalAsyncIteratorQueue";
+import { createIterableFromIterator } from "./createIterableFromIterator";
+import { createAsyncIterablesTestSuite } from "./test-utils";
 
-describe("chronologicalAsyncIteratorQueue", () => {
+describe("createChronologicalAsyncIteratorQueue", () => {
+  it("does not accept empty createIterators array", async () => {
+    const { createTestableAsyncIterator } = createAsyncIterablesTestSuite();
+
+    expect(() => createChronologicalAsyncIteratorQueue([])).toThrow();
+  });
+
   it("correctly works with single item", async () => {
     const { createTestableAsyncIterator } = createAsyncIterablesTestSuite();
 
-    const combined = chronologicalAsyncIteratorQueue([
+    const combined = createChronologicalAsyncIteratorQueue([
       () => createTestableAsyncIterator(0, 10, 10, "AAA")
     ]);
 
@@ -24,7 +29,7 @@ describe("chronologicalAsyncIteratorQueue", () => {
   it("chronologically yields values if first item is faster than second", async () => {
     const { createTestableAsyncIterator } = createAsyncIterablesTestSuite();
 
-    const combined = chronologicalAsyncIteratorQueue([
+    const combined = createChronologicalAsyncIteratorQueue([
       () => createTestableAsyncIterator(0, 10, 20, "AAA"),
       () => createTestableAsyncIterator(10, 20, 23, "BBB")
     ]);
@@ -41,7 +46,7 @@ describe("chronologicalAsyncIteratorQueue", () => {
   it("chronologically yields values if first item is slower than second", async () => {
     const { createTestableAsyncIterator } = createAsyncIterablesTestSuite();
 
-    const combined = chronologicalAsyncIteratorQueue([
+    const combined = createChronologicalAsyncIteratorQueue([
       () => createTestableAsyncIterator(0, 10, 23, "AAA"),
       () => createTestableAsyncIterator(10, 20, 20, "BBB")
     ]);
@@ -58,7 +63,7 @@ describe("chronologicalAsyncIteratorQueue", () => {
   it("chronologically yields values if first item is faster than second and there is a break somewhere in first item", async () => {
     const { createTestableAsyncIterator } = createAsyncIterablesTestSuite();
 
-    const combined = chronologicalAsyncIteratorQueue([
+    const combined = createChronologicalAsyncIteratorQueue([
       () => createTestableAsyncIterator(0, 10, 20, "AAA"),
       () => createTestableAsyncIterator(10, 20, 23, "BBB")
     ]);
@@ -79,7 +84,7 @@ describe("chronologicalAsyncIteratorQueue", () => {
   it("chronologically yields values if first item is slower than second and there is a break somewhere in first item", async () => {
     const { createTestableAsyncIterator } = createAsyncIterablesTestSuite();
 
-    const combined = chronologicalAsyncIteratorQueue([
+    const combined = createChronologicalAsyncIteratorQueue([
       () => createTestableAsyncIterator(0, 10, 23, "AAA"),
       () => createTestableAsyncIterator(10, 20, 20, "BBB")
     ]);
@@ -100,7 +105,7 @@ describe("chronologicalAsyncIteratorQueue", () => {
   it("chronologically yields values if first item is faster than second and there is a break somewhere in second item", async () => {
     const { createTestableAsyncIterator } = createAsyncIterablesTestSuite();
 
-    const combined = chronologicalAsyncIteratorQueue([
+    const combined = createChronologicalAsyncIteratorQueue([
       () => createTestableAsyncIterator(0, 10, 20, "AAA"),
       () => createTestableAsyncIterator(10, 20, 23, "BBB")
     ]);
@@ -121,7 +126,7 @@ describe("chronologicalAsyncIteratorQueue", () => {
   it("chronologically yields values if first item is slower than second and there is a break somewhere in second item", async () => {
     const { createTestableAsyncIterator } = createAsyncIterablesTestSuite();
 
-    const combined = chronologicalAsyncIteratorQueue([
+    const combined = createChronologicalAsyncIteratorQueue([
       () => createTestableAsyncIterator(0, 10, 23, "AAA"),
       () => createTestableAsyncIterator(10, 20, 20, "BBB")
     ]);
@@ -145,7 +150,7 @@ describe("chronologicalAsyncIteratorQueue", () => {
       createTestableAsyncIteratorThatThrowsAt
     } = createAsyncIterablesTestSuite();
 
-    const combined = chronologicalAsyncIteratorQueue([
+    const combined = createChronologicalAsyncIteratorQueue([
       () => createTestableAsyncIteratorThatThrowsAt(0, 10, 10, 0, "AAA"),
       () => createTestableAsyncIterator(10, 20, 50, "BBB")
     ]);
@@ -171,7 +176,7 @@ describe("chronologicalAsyncIteratorQueue", () => {
       createTestableAsyncIteratorThatThrowsAt
     } = createAsyncIterablesTestSuite();
 
-    const combined = chronologicalAsyncIteratorQueue([
+    const combined = createChronologicalAsyncIteratorQueue([
       () => createTestableAsyncIteratorThatThrowsAt(0, 10, 10, 3, "AAA"),
       () => createTestableAsyncIterator(10, 20, 50, "BBB")
     ]);
@@ -198,7 +203,7 @@ describe("chronologicalAsyncIteratorQueue", () => {
       callResults
     } = createAsyncIterablesTestSuite();
 
-    const combined = chronologicalAsyncIteratorQueue([
+    const combined = createChronologicalAsyncIteratorQueue([
       () => createTestableAsyncIterator(0, 10, 10, "AAA"),
       () => createTestableAsyncIteratorThatThrowsAt(10, 20, 50, 10 + 0, "BBB")
     ]);
@@ -215,12 +220,6 @@ describe("chronologicalAsyncIteratorQueue", () => {
       new Error("REQUESTED_THROW_BBB_10")
     );
 
-    try {
-      for await (let a of createIterableFromIterator(combined)) {
-        values.push(a);
-      }
-    } catch (ex) {}
-
     expect(values).toMatchSnapshot();
   });
 
@@ -230,7 +229,7 @@ describe("chronologicalAsyncIteratorQueue", () => {
       createTestableAsyncIteratorThatThrowsAt
     } = createAsyncIterablesTestSuite();
 
-    const combined = chronologicalAsyncIteratorQueue([
+    const combined = createChronologicalAsyncIteratorQueue([
       () => createTestableAsyncIterator(0, 10, 10, "AAA"),
       () => createTestableAsyncIteratorThatThrowsAt(10, 20, 50, 10 + 3, "BBB")
     ]);

@@ -1,0 +1,164 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`createChronologicalAsyncIteratorQueue chronologically yields values if first item is faster than second 1`] = `
+Array [
+  0,
+  1,
+  2,
+  3,
+  4,
+  5,
+  6,
+  7,
+  8,
+  9,
+  10,
+  11,
+  12,
+  13,
+  14,
+  15,
+  16,
+  17,
+  18,
+  19,
+]
+`;
+
+exports[`createChronologicalAsyncIteratorQueue chronologically yields values if first item is faster than second and there is a break somewhere in first item 1`] = `
+Array [
+  0,
+  1,
+  2,
+  3,
+]
+`;
+
+exports[`createChronologicalAsyncIteratorQueue chronologically yields values if first item is faster than second and there is a break somewhere in second item 1`] = `
+Array [
+  0,
+  1,
+  2,
+  3,
+  4,
+  5,
+  6,
+  7,
+  8,
+  9,
+  10,
+  11,
+  12,
+  13,
+  14,
+  15,
+]
+`;
+
+exports[`createChronologicalAsyncIteratorQueue chronologically yields values if first item is slower than second 1`] = `
+Array [
+  0,
+  1,
+  2,
+  3,
+  4,
+  5,
+  6,
+  7,
+  8,
+  9,
+  10,
+  11,
+  12,
+  13,
+  14,
+  15,
+  16,
+  17,
+  18,
+  19,
+]
+`;
+
+exports[`createChronologicalAsyncIteratorQueue chronologically yields values if first item is slower than second and there is a break somewhere in first item 1`] = `
+Array [
+  0,
+  1,
+  2,
+  3,
+]
+`;
+
+exports[`createChronologicalAsyncIteratorQueue chronologically yields values if first item is slower than second and there is a break somewhere in second item 1`] = `
+Array [
+  0,
+  1,
+  2,
+  3,
+  4,
+  5,
+  6,
+  7,
+  8,
+  9,
+  10,
+  11,
+  12,
+  13,
+  14,
+  15,
+]
+`;
+
+exports[`createChronologicalAsyncIteratorQueue correctly handles throw on first item(0 index) 1`] = `Array []`;
+
+exports[`createChronologicalAsyncIteratorQueue correctly handles throw on first item(3 index) 1`] = `
+Array [
+  0,
+  1,
+  2,
+]
+`;
+
+exports[`createChronologicalAsyncIteratorQueue correctly handles throw on second item(0 index) 1`] = `
+Array [
+  0,
+  1,
+  2,
+  3,
+  4,
+]
+`;
+
+exports[`createChronologicalAsyncIteratorQueue correctly handles throw on second item(3 index) 1`] = `
+Array [
+  0,
+  1,
+  2,
+  3,
+  4,
+  5,
+  6,
+  7,
+  8,
+  9,
+  10,
+  11,
+  12,
+]
+`;
+
+exports[`createChronologicalAsyncIteratorQueue correctly works with single item 1`] = `
+Array [
+  0,
+  1,
+  2,
+  3,
+  4,
+  5,
+  6,
+  7,
+  8,
+  9,
+]
+`;

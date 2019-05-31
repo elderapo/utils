@@ -62,11 +62,7 @@ export const chronologicalAsyncIteratorQueue = <VALUE>(
         s.isGatheringLoopRunning = true;
         const it = createIterator();
 
-        while (true) {
-          if (!s.isGatheringLoopRunning) {
-            return;
-          }
-
+        while (s.isGatheringLoopRunning) {
           // just in case
           /* istanbul ignore next */
           if (s.done) {
@@ -124,10 +120,7 @@ export const chronologicalAsyncIteratorQueue = <VALUE>(
         throwIfAnythingWentWrong();
 
         const createIteratorFunc = createIterators[combinedState.createIteratorIndex];
-
-        if (state.has(createIteratorFunc)) {
-          state.get(createIteratorFunc)!.isGatheringLoopRunning = false;
-        }
+        state.get(createIteratorFunc)!.isGatheringLoopRunning = false;
 
         const iteratorResult = await combinedState.createdIterator.next();
 

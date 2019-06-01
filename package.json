@@ -66,12 +66,13 @@
       "/node_modules/",
       "/test/",
       "/test-utils/",
+      "isomorphic",
       "index.ts"
     ],
     "coverageThreshold": {
       "global": {
         "branches": 90,
-        "functions": 95,
+        "functions": 90,
         "lines": 95,
         "statements": 95
       }
@@ -130,6 +131,8 @@
     "test": "test"
   },
   "dependencies": {
-    "core-js": "^3.1.3"
+    "core-js": "^3.1.3",
+    "crypto-browserify": "^3.12.0",
+    "ts-custom-error": "^3.1.0"
   }
 }

@@ -1,12 +1,10 @@
-export const main = () => {
+const semanticReleasePrepare = () => {
   const path = require("path");
   const { fork } = require("child_process");
   const colors = require("colors");
 
   const { readFileSync, writeFileSync } = require("fs");
   const pkg = JSON.parse(readFileSync(path.resolve(__dirname, "..", "package.json")));
-
-  main();
 
   pkg.scripts.prepush = "npm run test:prod && npm run build";
   pkg.scripts.commitmsg = "commitlint -E HUSKY_GIT_PARAMS";
@@ -44,4 +42,4 @@ export const main = () => {
   console.log();
 };
 
-main();
+semanticReleasePrepare();

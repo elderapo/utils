@@ -110,44 +110,6 @@ Array [
 ]
 `;
 
-exports[`createChronologicalAsyncIteratorQueue correctly handles throw on first item(0 index) 1`] = `Array []`;
-
-exports[`createChronologicalAsyncIteratorQueue correctly handles throw on first item(3 index) 1`] = `
-Array [
-  0,
-  1,
-  2,
-]
-`;
-
-exports[`createChronologicalAsyncIteratorQueue correctly handles throw on second item(0 index) 1`] = `
-Array [
-  0,
-  1,
-  2,
-  3,
-  4,
-]
-`;
-
-exports[`createChronologicalAsyncIteratorQueue correctly handles throw on second item(3 index) 1`] = `
-Array [
-  0,
-  1,
-  2,
-  3,
-  4,
-  5,
-  6,
-  7,
-  8,
-  9,
-  10,
-  11,
-  12,
-]
-`;
-
 exports[`createChronologicalAsyncIteratorQueue correctly works with single item 1`] = `
 Array [
   0,

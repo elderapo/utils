@@ -35,34 +35,35 @@ export class ChronologicalAsyncIteratorQueue<VALUE> {
 
     const combinedAsyncIterator: AsyncIterator<VALUE> = {
       next: async () => {
-        this.throwIfAnythingWentWrong();
+        try {
+          this.throwIfAnythingWentWrong();
 
-        const createIteratorFunc = this.createIterators[combinedState.createIteratorIndex];
-        this.state.get(createIteratorFunc)!.isGatheringLoopRunning = false;
+          const createIteratorFunc = this.createIterators[combinedState.createIteratorIndex];
+          this.state.get(createIteratorFunc)!.isGatheringLoopRunning = false;
 
-        const iteratorResult = await combinedState.createdIterator.next();
+          const iteratorResult = await combinedState.createdIterator.next();
 
-        if (iteratorResult.done) {
-          combinedState.createIteratorIndex++;
+          if (iteratorResult.done) {
+            combinedState.createIteratorIndex++;
 
-          const nextCreateIterator = this.createIterators[combinedState.createIteratorIndex];
+            const nextCreateIterator = this.createIterators[combinedState.createIteratorIndex];
 
-          if (!nextCreateIterator) {
-            return { done: true, value: nulledItem };
+            if (!nextCreateIterator) {
+              return { done: true, value: nulledItem };
+            }
+
+            combinedState.createdIterator = nextCreateIterator();
+            return combinedAsyncIterator.next();
           }
 
-          combinedState.createdIterator = nextCreateIterator();
-          return combinedAsyncIterator.next();
+          let isDone = combinedState.exhaused;
+
+          return { value: iteratorResult.value, done: isDone };
+        } catch (ex) {
+          this.freeEverything();
+
+          throw ex;
         }
-
-        let isDone = combinedState.exhaused;
-
-        return { value: iteratorResult.value, done: isDone };
-      },
-      throw: /* istanbul ignore next */ async error => {
-        this.freeEverything();
-
-        throw error;
       },
       return: async () => {
         combinedState.exhaused = true;

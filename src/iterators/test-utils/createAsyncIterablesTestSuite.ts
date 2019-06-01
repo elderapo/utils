@@ -20,30 +20,21 @@ export const createAsyncIterablesTestSuite = () => {
 
     const asyncIterator: AsyncIterator<number> = {
       async next() {
-        callResults.push(JSON.stringify(["next", identifier, state]));
-
-        if (state.current >= state.end || state.exhaused) {
-          return { done: true, value: state.current };
-        }
-
         await sleep(delay);
 
         if (state.current === throwAt) {
+          callResults.push(JSON.stringify(["throw", identifier, state]));
           throw new Error(`REQUESTED_THROW_${identifier}_${state.current}`);
         }
 
+        if (state.current >= state.end || state.exhaused) {
+          callResults.push(JSON.stringify(["next-done", identifier, state]));
+          return { done: true, value: state.current };
+        }
+
+        callResults.push(JSON.stringify(["next", identifier, state]));
+
         return { value: state.current++, done: false };
-      },
-      async throw(e) {
-        callResults.push(JSON.stringify(["throw", identifier, state]));
-
-        throw e;
-      },
-      async return() {
-        callResults.push(JSON.stringify(["return", identifier, state]));
-
-        state.exhaused = true;
-        return { done: true, value: state.current };
       }
     };
     return asyncIterator;

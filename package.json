@@ -1,6 +1,8 @@
 {
   "name": "@elderapo/utils",
-  "private": false,
+  "publishConfig": {
+    "access": "public"
+  },
   "version": "0.0.0-development",
   "description": "",
   "keywords": [],

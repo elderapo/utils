@@ -44,3 +44,21 @@ export const promiseState = async <T>(promise: Promise<T>): Promise<PromiseState
     };
   }
 };
+
+export const isPromiseState = async <T>(
+  promise: Promise<T>,
+  expectedState: PromiseState
+): Promise<boolean> => {
+  const { state } = await promiseState(promise);
+
+  return state === expectedState;
+};
+
+export const isPending = async <T>(promise: Promise<T>): Promise<boolean> =>
+  isPromiseState(promise, PromiseState.Pending);
+
+export const isResolved = async <T>(promise: Promise<T>): Promise<boolean> =>
+  isPromiseState(promise, PromiseState.Resolved);
+
+export const isRejected = async <T>(promise: Promise<T>): Promise<boolean> =>
+  isPromiseState(promise, PromiseState.Rejected);

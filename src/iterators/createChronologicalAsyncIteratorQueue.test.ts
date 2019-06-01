@@ -1,305 +1,314 @@
-import { expectAsyncThrow } from "../test-utils";
-import { createChronologicalAsyncIteratorQueue } from "./createChronologicalAsyncIteratorQueue";
-import { createIterableFromIterator } from "./createIterableFromIterator";
-import { createAsyncIterablesTestSuite } from "./test-utils";
+import { TestAsyncIterator } from "./TestAsyncIterator";
 
 describe("createChronologicalAsyncIteratorQueue", () => {
-  it("does not accept empty createIterators array", async () => {
-    const { createTestableAsyncIterator } = createAsyncIterablesTestSuite();
+  it("aaa", async () => {
+    const it = new TestAsyncIterator({
+      from: 0,
+      to: 10,
+      delay: 50,
+      identifier: "AAA"
+    });
 
-    expect(() => createChronologicalAsyncIteratorQueue([])).toThrow();
-  });
-
-  it("correctly works with single item", async () => {
-    const { createTestableAsyncIterator } = createAsyncIterablesTestSuite();
-
-    const combined = createChronologicalAsyncIteratorQueue([
-      () => createTestableAsyncIterator(0, 10, 10, "AAA")
-    ]);
-
-    const values: number[] = [];
-
-    for await (let a of createIterableFromIterator(combined)) {
-      values.push(a);
+    for await (let item of it) {
     }
-
-    expect(values).toMatchSnapshot();
   });
 
-  it("chronologically yields values if first item is faster than second", async () => {
-    const { createTestableAsyncIterator } = createAsyncIterablesTestSuite();
+  // it("does not accept empty createIterators array", async () => {
+  //   const { createTestableAsyncIterator } = createAsyncIterablesTestSuite();
 
-    const combined = createChronologicalAsyncIteratorQueue([
-      () => createTestableAsyncIterator(0, 10, 20, "AAA"),
-      () => createTestableAsyncIterator(10, 20, 23, "BBB")
-    ]);
+  //   expect(() => createChronologicalAsyncIteratorQueue([])).toThrow();
+  // });
 
-    const values: number[] = [];
+  // it("correctly works with single item", async () => {
+  //   const { createTestableAsyncIterator } = createAsyncIterablesTestSuite();
 
-    for await (let a of createIterableFromIterator(combined)) {
-      values.push(a);
-    }
+  //   const combined = createChronologicalAsyncIteratorQueue([
+  //     () => createTestableAsyncIterator(0, 10, 10, "AAA")
+  //   ]);
 
-    expect(values).toMatchSnapshot();
-  });
+  //   const values: number[] = [];
 
-  it("chronologically yields values if first item is slower than second", async () => {
-    const { createTestableAsyncIterator } = createAsyncIterablesTestSuite();
+  //   for await (let a of createIterableFromIterator(combined)) {
+  //     values.push(a);
+  //   }
 
-    const combined = createChronologicalAsyncIteratorQueue([
-      () => createTestableAsyncIterator(0, 10, 23, "AAA"),
-      () => createTestableAsyncIterator(10, 20, 20, "BBB")
-    ]);
+  //   expect(values).toMatchSnapshot();
+  // });
 
-    const values: number[] = [];
+  // it("chronologically yields values if first item is faster than second", async () => {
+  //   const { createTestableAsyncIterator } = createAsyncIterablesTestSuite();
 
-    for await (let a of createIterableFromIterator(combined)) {
-      values.push(a);
-    }
+  //   const combined = createChronologicalAsyncIteratorQueue([
+  //     () => createTestableAsyncIterator(0, 10, 20, "AAA"),
+  //     () => createTestableAsyncIterator(10, 20, 23, "BBB")
+  //   ]);
 
-    expect(values).toMatchSnapshot();
-  });
+  //   const values: number[] = [];
 
-  it("chronologically yields values if first item is faster than second and there is a break somewhere in first item", async () => {
-    const { createTestableAsyncIterator } = createAsyncIterablesTestSuite();
+  //   for await (let a of createIterableFromIterator(combined)) {
+  //     values.push(a);
+  //   }
 
-    const combined = createChronologicalAsyncIteratorQueue([
-      () => createTestableAsyncIterator(0, 10, 20, "AAA"),
-      () => createTestableAsyncIterator(10, 20, 23, "BBB")
-    ]);
+  //   expect(values).toMatchSnapshot();
+  // });
 
-    const values: number[] = [];
+  // it("chronologically yields values if first item is slower than second", async () => {
+  //   const { createTestableAsyncIterator } = createAsyncIterablesTestSuite();
 
-    for await (let a of createIterableFromIterator(combined)) {
-      values.push(a);
+  //   const combined = createChronologicalAsyncIteratorQueue([
+  //     () => createTestableAsyncIterator(0, 10, 23, "AAA"),
+  //     () => createTestableAsyncIterator(10, 20, 20, "BBB")
+  //   ]);
 
-      if (a === 3) {
-        break;
-      }
-    }
+  //   const values: number[] = [];
 
-    expect(values).toMatchSnapshot();
-  });
+  //   for await (let a of createIterableFromIterator(combined)) {
+  //     values.push(a);
+  //   }
 
-  it("chronologically yields values if first item is slower than second and there is a break somewhere in first item", async () => {
-    const { createTestableAsyncIterator } = createAsyncIterablesTestSuite();
+  //   expect(values).toMatchSnapshot();
+  // });
 
-    const combined = createChronologicalAsyncIteratorQueue([
-      () => createTestableAsyncIterator(0, 10, 23, "AAA"),
-      () => createTestableAsyncIterator(10, 20, 20, "BBB")
-    ]);
+  // it("chronologically yields values if first item is faster than second and there is a break somewhere in first item", async () => {
+  //   const { createTestableAsyncIterator } = createAsyncIterablesTestSuite();
 
-    const values: number[] = [];
+  //   const combined = createChronologicalAsyncIteratorQueue([
+  //     () => createTestableAsyncIterator(0, 10, 20, "AAA"),
+  //     () => createTestableAsyncIterator(10, 20, 23, "BBB")
+  //   ]);
 
-    for await (let a of createIterableFromIterator(combined)) {
-      values.push(a);
+  //   const values: number[] = [];
 
-      if (a === 3) {
-        break;
-      }
-    }
+  //   for await (let a of createIterableFromIterator(combined)) {
+  //     values.push(a);
 
-    expect(values).toMatchSnapshot();
-  });
+  //     if (a === 3) {
+  //       break;
+  //     }
+  //   }
 
-  it("chronologically yields values if first item is faster than second and there is a break somewhere in second item", async () => {
-    const { createTestableAsyncIterator } = createAsyncIterablesTestSuite();
+  //   expect(values).toMatchSnapshot();
+  // });
 
-    const combined = createChronologicalAsyncIteratorQueue([
-      () => createTestableAsyncIterator(0, 10, 20, "AAA"),
-      () => createTestableAsyncIterator(10, 20, 23, "BBB")
-    ]);
+  // it("chronologically yields values if first item is slower than second and there is a break somewhere in first item", async () => {
+  //   const { createTestableAsyncIterator } = createAsyncIterablesTestSuite();
 
-    const values: number[] = [];
+  //   const combined = createChronologicalAsyncIteratorQueue([
+  //     () => createTestableAsyncIterator(0, 10, 23, "AAA"),
+  //     () => createTestableAsyncIterator(10, 20, 20, "BBB")
+  //   ]);
 
-    for await (let a of createIterableFromIterator(combined)) {
-      values.push(a);
+  //   const values: number[] = [];
 
-      if (a === 15) {
-        break;
-      }
-    }
+  //   for await (let a of createIterableFromIterator(combined)) {
+  //     values.push(a);
 
-    expect(values).toMatchSnapshot();
-  });
+  //     if (a === 3) {
+  //       break;
+  //     }
+  //   }
 
-  it("chronologically yields values if first item is slower than second and there is a break somewhere in second item", async () => {
-    const { createTestableAsyncIterator } = createAsyncIterablesTestSuite();
+  //   expect(values).toMatchSnapshot();
+  // });
 
-    const combined = createChronologicalAsyncIteratorQueue([
-      () => createTestableAsyncIterator(0, 10, 23, "AAA"),
-      () => createTestableAsyncIterator(10, 20, 20, "BBB")
-    ]);
+  // it("chronologically yields values if first item is faster than second and there is a break somewhere in second item", async () => {
+  //   const { createTestableAsyncIterator } = createAsyncIterablesTestSuite();
 
-    const values: number[] = [];
+  //   const combined = createChronologicalAsyncIteratorQueue([
+  //     () => createTestableAsyncIterator(0, 10, 20, "AAA"),
+  //     () => createTestableAsyncIterator(10, 20, 23, "BBB")
+  //   ]);
 
-    for await (let a of createIterableFromIterator(combined)) {
-      values.push(a);
+  //   const values: number[] = [];
 
-      if (a === 15) {
-        break;
-      }
-    }
+  //   for await (let a of createIterableFromIterator(combined)) {
+  //     values.push(a);
 
-    expect(values).toMatchSnapshot();
-  });
+  //     if (a === 15) {
+  //       break;
+  //     }
+  //   }
 
-  it("correctly handles throw on first item(0 index)", async () => {
-    const {
-      createTestableAsyncIterator,
-      createTestableAsyncIteratorThatThrowsAt,
-      callResults
-    } = createAsyncIterablesTestSuite();
+  //   expect(values).toMatchSnapshot();
+  // });
 
-    const combined = createChronologicalAsyncIteratorQueue([
-      () => createTestableAsyncIteratorThatThrowsAt(0, 10, 10, 0, "AAA"),
-      () => createTestableAsyncIterator(10, 20, 6, "BBB")
-    ]);
+  // it("chronologically yields values if first item is slower than second and there is a break somewhere in second item", async () => {
+  //   const { createTestableAsyncIterator } = createAsyncIterablesTestSuite();
 
-    const values: number[] = [];
+  //   const combined = createChronologicalAsyncIteratorQueue([
+  //     () => createTestableAsyncIterator(0, 10, 23, "AAA"),
+  //     () => createTestableAsyncIterator(10, 20, 20, "BBB")
+  //   ]);
 
-    await expectAsyncThrow(
-      async () => {
-        for await (let a of createIterableFromIterator(combined)) {
-          values.push(a);
-        }
-      },
-      [],
-      new Error("REQUESTED_THROW_AAA_0")
-    );
+  //   const values: number[] = [];
 
-    // BBB should manage to execute before AAA but shouldn't be included in values
-    expect(callResults[0]).toBe(
-      '["next","BBB",{"start":10,"end":20,"current":10,"delay":6,"exhaused":false}]'
-    );
-    expect(values.length).toBe(0);
-  });
+  //   for await (let a of createIterableFromIterator(combined)) {
+  //     values.push(a);
 
-  it("correctly handles throw on first item(3 index)", async () => {
-    const {
-      createTestableAsyncIterator,
-      createTestableAsyncIteratorThatThrowsAt,
-      callResults
-    } = createAsyncIterablesTestSuite();
+  //     if (a === 15) {
+  //       break;
+  //     }
+  //   }
 
-    const combined = createChronologicalAsyncIteratorQueue([
-      () => createTestableAsyncIteratorThatThrowsAt(0, 10, 10, 3, "AAA"),
-      () => createTestableAsyncIterator(10, 20, 15, "BBB")
-    ]);
+  //   expect(values).toMatchSnapshot();
+  // });
 
-    const values: number[] = [];
+  // it("correctly handles throw on first item(0 index)", async () => {
+  //   const {
+  //     createTestableAsyncIterator,
+  //     createTestableAsyncIteratorThatThrowsAt,
+  //     callResults
+  //   } = createAsyncIterablesTestSuite();
 
-    await expectAsyncThrow(
-      async () => {
-        for await (let a of createIterableFromIterator(combined)) {
-          values.push(a);
-        }
-      },
-      [],
-      new Error("REQUESTED_THROW_AAA_3")
-    );
+  //   const combined = createChronologicalAsyncIteratorQueue([
+  //     () => createTestableAsyncIteratorThatThrowsAt(0, 10, 10, 0, "AAA"),
+  //     () => createTestableAsyncIterator(10, 20, 6, "BBB")
+  //   ]);
 
-    expect(values.length).toBeLessThanOrEqual(3);
+  //   const values: number[] = [];
 
-    // because BBB should manage to execute at least 1 time
-    expect(callResults[1]).toBe(
-      '["next","BBB",{"start":10,"end":20,"current":10,"delay":15,"exhaused":false}]'
-    );
+  //   await expectAsyncThrow(
+  //     async () => {
+  //       for await (let a of createIterableFromIterator(combined)) {
+  //         values.push(a);
+  //       }
+  //     },
+  //     [],
+  //     new Error("REQUESTED_THROW_AAA_0")
+  //   );
 
-    // but BBB result shouldn't be included in values because first iterator was interrupted
-    expect(values.filter(v => v > 2).length).toBe(0);
-  });
+  //   // BBB should manage to execute before AAA but shouldn't be included in values
+  //   expect(callResults[0]).toBe(
+  //     '["next","BBB",{"start":10,"end":20,"current":10,"delay":6,"exhaused":false}]'
+  //   );
+  //   expect(values.length).toBe(0);
+  // });
 
-  it("correctly handles throw on second item(0 index)", async () => {
-    const {
-      createTestableAsyncIterator,
-      createTestableAsyncIteratorThatThrowsAt,
-      callResults
-    } = createAsyncIterablesTestSuite();
+  // it("correctly handles throw on first item(3 index)", async () => {
+  //   const {
+  //     createTestableAsyncIterator,
+  //     createTestableAsyncIteratorThatThrowsAt,
+  //     callResults
+  //   } = createAsyncIterablesTestSuite();
 
-    const combined = createChronologicalAsyncIteratorQueue([
-      () => createTestableAsyncIterator(0, 10, 14, "AAA"),
-      () => createTestableAsyncIteratorThatThrowsAt(10, 20, 50, 10 + 0, "BBB")
-    ]);
+  //   const combined = createChronologicalAsyncIteratorQueue([
+  //     () => createTestableAsyncIteratorThatThrowsAt(0, 10, 10, 3, "AAA"),
+  //     () => createTestableAsyncIterator(10, 20, 15, "BBB")
+  //   ]);
 
-    const values: number[] = [];
+  //   const values: number[] = [];
 
-    await expectAsyncThrow(
-      async () => {
-        for await (let a of createIterableFromIterator(combined)) {
-          values.push(a);
-        }
-      },
-      [],
-      new Error("REQUESTED_THROW_BBB_10")
-    );
+  //   await expectAsyncThrow(
+  //     async () => {
+  //       for await (let a of createIterableFromIterator(combined)) {
+  //         values.push(a);
+  //       }
+  //     },
+  //     [],
+  //     new Error("REQUESTED_THROW_AAA_3")
+  //   );
 
-    expect(values.length).toBeLessThanOrEqual(4);
-    expect(
-      callResults.includes(
-        '["throw","BBB",{"start":10,"end":20,"current":10,"delay":50,"exhaused":false}]'
-      )
-    ).toBeTruthy();
-    // because it's impossible for values bigger to execute on time
-    expect(values.filter(v => v > 3).length).toBe(0);
-  });
+  //   expect(values.length).toBeLessThanOrEqual(3);
 
-  it("correctly handles throw on second item(2 index)", async () => {
-    const {
-      createTestableAsyncIterator,
-      createTestableAsyncIteratorThatThrowsAt,
-      callResults
-    } = createAsyncIterablesTestSuite();
+  //   // because BBB should manage to execute at least 1 time
+  //   expect(callResults[1]).toBe(
+  //     '["next","BBB",{"start":10,"end":20,"current":10,"delay":15,"exhaused":false}]'
+  //   );
 
-    const combined = createChronologicalAsyncIteratorQueue([
-      () => createTestableAsyncIterator(0, 10, 10, "AAA"),
-      () => createTestableAsyncIteratorThatThrowsAt(10, 20, 15, 10 + 2, "BBB")
-    ]);
+  //   // but BBB result shouldn't be included in values because first iterator was interrupted
+  //   expect(values.filter(v => v > 2).length).toBe(0);
+  // });
 
-    const values: number[] = [];
+  // it("correctly handles throw on second item(0 index)", async () => {
+  //   const {
+  //     createTestableAsyncIterator,
+  //     createTestableAsyncIteratorThatThrowsAt,
+  //     callResults
+  //   } = createAsyncIterablesTestSuite();
 
-    await expectAsyncThrow(
-      async () => {
-        for await (let a of createIterableFromIterator(combined)) {
-          values.push(a);
-        }
-      },
-      [],
-      new Error("REQUESTED_THROW_BBB_12")
-    );
+  //   const combined = createChronologicalAsyncIteratorQueue([
+  //     () => createTestableAsyncIterator(0, 10, 14, "AAA"),
+  //     () => createTestableAsyncIteratorThatThrowsAt(10, 20, 50, 10 + 0, "BBB")
+  //   ]);
 
-    expect(values.length).toBeLessThanOrEqual(5);
+  //   const values: number[] = [];
 
-    // // because it's impossible for values bigger to execute on time
-    expect(values.filter(v => v > 4).length).toBe(0);
-  });
+  //   await expectAsyncThrow(
+  //     async () => {
+  //       for await (let a of createIterableFromIterator(combined)) {
+  //         values.push(a);
+  //       }
+  //     },
+  //     [],
+  //     new Error("REQUESTED_THROW_BBB_10")
+  //   );
 
-  it("correctly handles throw on second item(3 index) - second item is faster than first", async () => {
-    const {
-      createTestableAsyncIterator,
-      createTestableAsyncIteratorThatThrowsAt
-    } = createAsyncIterablesTestSuite();
+  //   expect(values.length).toBeLessThanOrEqual(4);
+  //   expect(
+  //     callResults.includes(
+  //       '["throw","BBB",{"start":10,"end":20,"current":10,"delay":50,"exhaused":false}]'
+  //     )
+  //   ).toBeTruthy();
+  //   // because it's impossible for values bigger to execute on time
+  //   expect(values.filter(v => v > 3).length).toBe(0);
+  // });
 
-    const combined = createChronologicalAsyncIteratorQueue([
-      () => createTestableAsyncIterator(0, 10, 20, "AAA"),
-      () => createTestableAsyncIteratorThatThrowsAt(10, 20, 10, 10 + 3, "BBB")
-    ]);
+  // it("correctly handles throw on second item(2 index)", async () => {
+  //   const {
+  //     createTestableAsyncIterator,
+  //     createTestableAsyncIteratorThatThrowsAt,
+  //     callResults
+  //   } = createAsyncIterablesTestSuite();
 
-    const values: number[] = [];
+  //   const combined = createChronologicalAsyncIteratorQueue([
+  //     () => createTestableAsyncIterator(0, 10, 10, "AAA"),
+  //     () => createTestableAsyncIteratorThatThrowsAt(10, 20, 15, 10 + 2, "BBB")
+  //   ]);
 
-    await expectAsyncThrow(
-      async () => {
-        for await (let a of createIterableFromIterator(combined)) {
-          values.push(a);
-        }
-      },
-      [],
-      new Error("REQUESTED_THROW_BBB_13")
-    );
+  //   const values: number[] = [];
 
-    expect(values.length).toBeLessThanOrEqual(3);
+  //   await expectAsyncThrow(
+  //     async () => {
+  //       for await (let a of createIterableFromIterator(combined)) {
+  //         values.push(a);
+  //       }
+  //     },
+  //     [],
+  //     new Error("REQUESTED_THROW_BBB_12")
+  //   );
 
-    // because it's impossible for values bigger to execute on time
-    expect(values.filter(v => v > 2).length).toBe(0);
-  });
+  //   expect(values.length).toBeLessThanOrEqual(5);
+
+  //   // // because it's impossible for values bigger to execute on time
+  //   expect(values.filter(v => v > 4).length).toBe(0);
+  // });
+
+  // it("correctly handles throw on second item(3 index) - second item is faster than first", async () => {
+  //   const {
+  //     createTestableAsyncIterator,
+  //     createTestableAsyncIteratorThatThrowsAt
+  //   } = createAsyncIterablesTestSuite();
+
+  //   const combined = createChronologicalAsyncIteratorQueue([
+  //     () => createTestableAsyncIterator(0, 10, 20, "AAA"),
+  //     () => createTestableAsyncIteratorThatThrowsAt(10, 20, 10, 10 + 3, "BBB")
+  //   ]);
+
+  //   const values: number[] = [];
+
+  //   await expectAsyncThrow(
+  //     async () => {
+  //       for await (let a of createIterableFromIterator(combined)) {
+  //         values.push(a);
+  //       }
+  //     },
+  //     [],
+  //     new Error("REQUESTED_THROW_BBB_13")
+  //   );
+
+  //   expect(values.length).toBeLessThanOrEqual(3);
+
+  //   // because it's impossible for values bigger to execute on time
+  //   expect(values.filter(v => v > 2).length).toBe(0);
+  // });
 });

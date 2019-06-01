@@ -1,3 +1,5 @@
+/* istanbul ignore file */
+
 import "core-js/modules/es.symbol.async-iterator";
 import { waitImmediate } from "../timers";
 

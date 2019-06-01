@@ -235,9 +235,11 @@ describe("createChronologicalAsyncIteratorQueue", () => {
     );
 
     expect(values.length).toBeLessThanOrEqual(4);
-    expect(callResults[3]).toBe(
-      '["throw","BBB",{"start":10,"end":20,"current":10,"delay":50,"exhaused":false}]'
-    );
+    expect(
+      callResults.includes(
+        '["throw","BBB",{"start":10,"end":20,"current":10,"delay":50,"exhaused":false}]'
+      )
+    ).toBeTruthy();
     // because it's impossible for values bigger to execute on time
     expect(values.filter(v => v > 3).length).toBe(0);
   });

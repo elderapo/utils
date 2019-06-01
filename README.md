@@ -27,8 +27,6 @@ npm install @elderapo/utils
 - [ ] universal base 64
 - [ ] satoshiToBitcoin & bitcoinToSatoshi
 - [ ] Writeable<T>
-- [ ] isBrowser
-- [ ] isProduction
 
 ## License
 

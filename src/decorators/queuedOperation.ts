@@ -45,13 +45,16 @@ export const queuedOperation = (options?: QueuedOperationOptions) => {
     );
 
     const method = descriptor.value!;
+
     descriptor.value = function(...args: any[]) {
-      const operation = operationQueue.queue.then(() => {
-        return method.apply(this, args);
-      });
+      const operation = operationQueue.queue.then(() => method.apply(this, args));
+
+      // tslint:disable-next-line
       operationQueue.queue = operation.catch(() => {});
+
       return operation;
     };
+
     return descriptor;
   };
 };

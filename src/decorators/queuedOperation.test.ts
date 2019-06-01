@@ -1,5 +1,6 @@
 import { sleep, waitImmediate } from "../timers";
 import { queuedOperation, createOperationQueue } from "./queuedOperation";
+import { expectAsyncThrow } from "../test-utils";
 
 describe("queuedOperation", () => {
   it("uses instance method separate queue by default", async () => {
@@ -143,5 +144,56 @@ describe("queuedOperation", () => {
       expect(await promises[index]).toBe(index);
       expect(instance.state).toBe(index + 1);
     }
+  });
+
+  const testThrowScenario = async (delayFunc: (() => Promise<void>) | null) => {
+    class TestClass {
+      public state: number = 0;
+
+      @queuedOperation()
+      public async someMethod(shouldThrow: boolean) {
+        if (delayFunc) {
+          await delayFunc();
+        }
+
+        if (shouldThrow) {
+          throw new Error(`REQUESTED_ERROR_${this.state}`);
+        }
+
+        return this.state++;
+      }
+    }
+
+    const instance = new TestClass();
+
+    expect(instance.state).toBe(0);
+    // tslint:disable-next-line
+    instance.someMethod(false);
+    expect(instance.state).toBe(0);
+
+    await expectAsyncThrow(() => instance.someMethod(true), [], new Error(`REQUESTED_ERROR_1`));
+
+    // because first call resolves
+    expect(instance.state).toBe(1);
+
+    await instance.someMethod(false);
+    expect(instance.state).toBe(2);
+
+    await expectAsyncThrow(() => instance.someMethod(true), [], new Error(`REQUESTED_ERROR_2`));
+    await expectAsyncThrow(() => instance.someMethod(true), [], new Error(`REQUESTED_ERROR_2`));
+
+    expect(instance.state).toBe(2);
+  };
+
+  it("normally throws (setImmediate)", async () => {
+    await testThrowScenario(() => waitImmediate());
+  });
+
+  it("normally throws (sleep small delay)", async () => {
+    await testThrowScenario(() => sleep(100));
+  });
+
+  it("normally throws (no delay func)", async () => {
+    await testThrowScenario(null);
   });
 });

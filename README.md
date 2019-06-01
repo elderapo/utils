@@ -18,6 +18,21 @@ yarn add @elderapo/utils
 npm install @elderapo/utils
 ```
 
+### Todo:
+
+- [ ] limitMethod
+- [ ] OperationQueue
+- [ ] isValidEnum
+- [ ] fixPropertyDecorator
+- [ ] (?) translation helper - error/notification lookuper - enum -> payload, instance retrieval
+- [ ] (?) safe RNG generator
+- [ ] isomorphic "crypto" package
+- [ ] universal base 64
+- [ ] satoshiToBitcoin & bitcoinToSatoshi
+- [ ] Writeable<T>
+- [ ] isBrowser
+- [ ] isProduction
+
 ## License
 
 [![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2Felderapo%2Futils.svg?type=large)](https://app.fossa.io/projects/git%2Bgithub.com%2Felderapo%2Futils?ref=badge_large)

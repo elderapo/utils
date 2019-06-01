@@ -63,6 +63,7 @@
       "/node_modules/",
       "/test/",
       "/test-utils/",
+      "isomorphic",
       "index.ts"
     ],
     "coverageThreshold": {

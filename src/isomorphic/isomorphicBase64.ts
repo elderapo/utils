@@ -1,5 +1,3 @@
-/* istanbul ignore file */
-
 import { isNodeJS } from "./isNodeJS";
 
 export const isomorphicBtoa = (decoded: string): string =>

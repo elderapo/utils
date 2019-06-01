@@ -1,5 +1,3 @@
-/* istanbul ignore file */
-
 import * as _Crypto from "crypto";
 import { isBrowser } from "./isBrowser";
 

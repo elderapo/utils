@@ -1,9 +1,11 @@
-export type GetKeyFromArgs = (...args: any[]) => any;
+import { CustomError } from "ts-custom-error";
+
+export type GetKeyFromArgs = (...args: any[]) => string;
 export type OnRateExceded = (
   args: any[],
   callsPerTimespan: number,
   lastTimestamps: number[]
-) => Promise<void>;
+) => never | Promise<never>;
 
 export interface ILimitMethodOptions {
   calls: number;
@@ -11,6 +13,8 @@ export interface ILimitMethodOptions {
   getKeyFromArgs: GetKeyFromArgs;
   onRateExceded?: OnRateExceded;
 }
+
+export class RateExceededError extends CustomError {}
 
 export const limitMethod = ({
   calls,
@@ -23,11 +27,11 @@ export const limitMethod = ({
     key: string,
     descriptor = Object.getOwnPropertyDescriptor(target, key) as PropertyDescriptor
   ) => {
-    const lastExecutionsMap = new Map<any, number[]>();
+    const lastExecutionsMap = new Map<string, number[]>();
     const originalMethod = descriptor.value;
 
     // this has to be function and not an arrow function
-    descriptor.value = async function(...args: any[]) {
+    descriptor.value = function(...args: any[]) {
       const key = getKeyFromArgs(...args);
 
       if (!lastExecutionsMap.has(key)) {
@@ -49,12 +53,13 @@ export const limitMethod = ({
         if (onRateExceded) {
           return onRateExceded([...args], calls, lastExecutions);
         }
-        return;
+
+        throw new RateExceededError();
       }
 
       lastExecutions.push(Date.now());
 
-      return await originalMethod.apply(this, args);
+      return originalMethod.apply(this, args);
     };
 
     return descriptor;

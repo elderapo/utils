@@ -21,9 +21,6 @@ npm install @elderapo/utils
 ### Todo:
 
 - [ ] limitMethod
-- [ ] OperationQueue
-- [ ] isValidEnum
-- [ ] fixPropertyDecorator
 - [ ] (?) translation helper - error/notification lookuper - enum -> payload, instance retrieval
 - [ ] (?) safe RNG generator
 - [ ] isomorphic "crypto" package

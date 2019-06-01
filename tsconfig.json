@@ -13,6 +13,6 @@
     "strictPropertyInitialization": false,
     "declarationDir": "dist/types",
     "outDir": "dist/lib"
-  }
-  // "include": ["src"]
+  },
+  "include": ["src"]
 }

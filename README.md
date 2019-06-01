@@ -23,10 +23,7 @@ npm install @elderapo/utils
 - [ ] limitMethod
 - [ ] (?) translation helper - error/notification lookuper - enum -> payload, instance retrieval
 - [ ] (?) safe RNG generator
-- [ ] isomorphic "crypto" package
-- [ ] universal base 64
 - [ ] satoshiToBitcoin & bitcoinToSatoshi
-- [ ] Writeable<T>
 
 ## License
 

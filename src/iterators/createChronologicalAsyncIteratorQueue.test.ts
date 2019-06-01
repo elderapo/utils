@@ -1,16 +1,233 @@
 import { TestAsyncIterator } from "./TestAsyncIterator";
+import { createChronologicalAsyncIteratorQueue } from "./createChronologicalAsyncIteratorQueue";
 
 describe("createChronologicalAsyncIteratorQueue", () => {
-  it("aaa", async () => {
-    const it = new TestAsyncIterator({
+  it("combining 1 non throwing iterator should work just fine", async () => {
+    const it1 = new TestAsyncIterator({
+      from: 0,
+      to: 5,
+      delay: 50,
+      identifier: "AAA"
+    });
+
+    const combinedIT = createChronologicalAsyncIteratorQueue([it1]);
+
+    const items: number[] = [];
+
+    for await (const item of combinedIT) {
+      items.push(item);
+    }
+
+    expect(items).toMatchInlineSnapshot(`
+                  Array [
+                    0,
+                    1,
+                    2,
+                    3,
+                    4,
+                  ]
+            `);
+  });
+
+  it("combining 2 non throwing iterators with same delays works", async () => {
+    const it1 = new TestAsyncIterator({
+      from: 0,
+      to: 5,
+      delay: 50,
+      identifier: "AAA"
+    });
+
+    const it2 = new TestAsyncIterator({
+      from: 5,
+      to: 10,
+      delay: 50,
+      identifier: "BBB"
+    });
+
+    const combinedIT = createChronologicalAsyncIteratorQueue([it1, it2]);
+
+    const items: number[] = [];
+
+    for await (const item of combinedIT) {
+      items.push(item);
+    }
+
+    expect(items).toMatchInlineSnapshot(`
+                  Array [
+                    0,
+                    1,
+                    2,
+                    3,
+                    4,
+                    5,
+                    6,
+                    7,
+                    8,
+                    9,
+                  ]
+            `);
+  });
+
+  it("combining 2 non throwing iterators with different delays works (1)", async () => {
+    const it1 = new TestAsyncIterator({
+      from: 0,
+      to: 5,
+      delay: 25,
+      identifier: "AAA"
+    });
+
+    const it2 = new TestAsyncIterator({
+      from: 5,
+      to: 10,
+      delay: 50,
+      identifier: "BBB"
+    });
+
+    const combinedIT = createChronologicalAsyncIteratorQueue([it1, it2]);
+
+    const items: number[] = [];
+
+    for await (const item of combinedIT) {
+      items.push(item);
+    }
+
+    expect(items).toMatchInlineSnapshot(`
+                  Array [
+                    0,
+                    1,
+                    2,
+                    3,
+                    4,
+                    5,
+                    6,
+                    7,
+                    8,
+                    9,
+                  ]
+            `);
+  });
+
+  it("combining 2 non throwing iterators with different delays works (2)", async () => {
+    const it1 = new TestAsyncIterator({
+      from: 0,
+      to: 5,
+      delay: 50,
+      identifier: "AAA"
+    });
+
+    const it2 = new TestAsyncIterator({
+      from: 5,
+      to: 10,
+      delay: 25,
+      identifier: "BBB"
+    });
+
+    const combinedIT = createChronologicalAsyncIteratorQueue([it1, it2]);
+
+    const items: number[] = [];
+
+    for await (const item of combinedIT) {
+      items.push(item);
+    }
+
+    expect(items).toMatchInlineSnapshot(`
+                  Array [
+                    0,
+                    1,
+                    2,
+                    3,
+                    4,
+                    5,
+                    6,
+                    7,
+                    8,
+                    9,
+                  ]
+            `);
+  });
+
+  it("combining 2 non throwing iterators and first returns should work", async () => {
+    const it1 = new TestAsyncIterator({
+      from: 0,
+      to: 5,
+      delay: 50,
+      identifier: "AAA"
+    });
+
+    const it2 = new TestAsyncIterator({
+      from: 5,
+      to: 10,
+      delay: 50,
+      identifier: "BBB"
+    });
+
+    const combinedIT = createChronologicalAsyncIteratorQueue([it1, it2]);
+
+    const items: number[] = [];
+
+    for await (const item of combinedIT) {
+      items.push(item);
+      if (item === 3) {
+        return;
+      }
+    }
+
+    for await (const item of combinedIT) {
+      items.push(item);
+    }
+
+    expect(items).toMatchInlineSnapshot(`
+                  Array [
+                    0,
+                    1,
+                    2,
+                  ]
+            `);
+  });
+
+  it.only("combining 2 non throwing iterators and second returns should work", async () => {
+    const it1 = new TestAsyncIterator({
       from: 0,
       to: 10,
       delay: 50,
       identifier: "AAA"
     });
 
-    for await (let item of it) {
+    const it2 = new TestAsyncIterator({
+      from: 10,
+      to: 20,
+      delay: 50,
+      identifier: "BBB"
+    });
+
+    const combinedIT = createChronologicalAsyncIteratorQueue([it1, it2]);
+
+    const items: number[] = [];
+
+    for await (const item of combinedIT) {
+      items.push(item);
+      if (item === 13) {
+        return;
+      }
     }
+
+    expect(items).toMatchInlineSnapshot(`
+      Array [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+      ]
+    `);
   });
 
   // it("does not accept empty createIterators array", async () => {

@@ -156,9 +156,10 @@ describe("TestAsyncIterator", () => {
       identifier: "AAA"
     });
 
-    expectAsyncThrow(
+    await expectAsyncThrow(
       async () => {
         for await (const item of it) {
+          //
         }
       },
       [],

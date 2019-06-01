@@ -40,7 +40,10 @@ export class TestAsyncIterator implements AsyncIterator<number> {
   });
 
   constructor(private options: DeepReadonly<ITestAsyncIteratorOptions>) {
-    this.startFakeEventSource();
+    this.startFakeEventSource().catch(err => {
+      /* istanbul ignore next */
+      console.error("startFakeEventSource thew", err);
+    });
   }
 
   private async startFakeEventSource(): Promise<void> {
@@ -66,7 +69,9 @@ export class TestAsyncIterator implements AsyncIterator<number> {
     }
 
     this.state.isSourceActive = false;
-    this.return();
+    this.return().catch(() => {
+      //
+    });
   }
 
   private shouldFakeEventSourceExit() {
@@ -78,7 +83,7 @@ export class TestAsyncIterator implements AsyncIterator<number> {
       this.state.nextResolves.push(resolve);
     });
 
-    return await Promise.race([this.throwPromise, this.returnPromise, nextPromise]);
+    return Promise.race([this.throwPromise, this.returnPromise, nextPromise]);
   }
 
   public getState(): DeepReadonly<ITestAsyncIteratorState> {
@@ -96,7 +101,7 @@ export class TestAsyncIterator implements AsyncIterator<number> {
 
     if (value === throwAt) {
       // Maybe this can be normal throw new Error - gotta test
-      return await this.throw(new Error(`REQUESTED_THROW_${identifier}_${throwAt}`));
+      return this.throw(new Error(`REQUESTED_THROW_${identifier}_${throwAt}`));
     }
 
     return { done: false, value: value };

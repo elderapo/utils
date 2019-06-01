@@ -23,7 +23,10 @@ export class AsyncIteratorWithPersistedState<T> implements AsyncIterator<T> {
   private nullItem: T = null as any;
 
   constructor(private target: AsyncIterator<T>) {
-    this.startGatherer();
+    this.startGatherer().catch(err => {
+      /* istanbul ignore next */
+      console.error("startGatherer thew", err);
+    });
   }
 
   private async startGatherer(): Promise<void> {
@@ -54,7 +57,7 @@ export class AsyncIteratorWithPersistedState<T> implements AsyncIterator<T> {
       return { done: false, value: ev };
     }
 
-    if (this.targetState.returned) {
+    if (this.targetState.returned && this.targetSavedEvents.length === 0) {
       return this.return();
     }
 

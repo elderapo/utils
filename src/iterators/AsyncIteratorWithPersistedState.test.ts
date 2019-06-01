@@ -21,14 +21,14 @@ describe("AsyncIteratorWithPersistedState", () => {
     }
 
     expect(values).toMatchInlineSnapshot(`
-                  Array [
-                    0,
-                    1,
-                    2,
-                    3,
-                    4,
-                  ]
-            `);
+                        Array [
+                          0,
+                          1,
+                          2,
+                          3,
+                          4,
+                        ]
+                `);
   });
 
   it("works fine with delayed iteration", async () => {
@@ -50,14 +50,14 @@ describe("AsyncIteratorWithPersistedState", () => {
     }
 
     expect(values).toMatchInlineSnapshot(`
-                  Array [
-                    0,
-                    1,
-                    2,
-                    3,
-                    4,
-                  ]
-            `);
+                        Array [
+                          0,
+                          1,
+                          2,
+                          3,
+                          4,
+                        ]
+                `);
   });
 
   it("works fine with delayed iteration multiple times", async () => {
@@ -83,29 +83,29 @@ describe("AsyncIteratorWithPersistedState", () => {
     }
 
     expect(values).toMatchInlineSnapshot(`
-      Array [
-        0,
-        1,
-        2,
-        3,
-        4,
-        5,
-        6,
-        7,
-        8,
-        9,
-        10,
-        11,
-        12,
-        13,
-        14,
-        15,
-        16,
-        17,
-        18,
-        19,
-      ]
-    `);
+            Array [
+              0,
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7,
+              8,
+              9,
+              10,
+              11,
+              12,
+              13,
+              14,
+              15,
+              16,
+              17,
+              18,
+              19,
+            ]
+        `);
   });
 
   it("works fine with instant iteration that throws", async () => {
@@ -121,7 +121,7 @@ describe("AsyncIteratorWithPersistedState", () => {
 
     const values: number[] = [];
 
-    expectAsyncThrow(
+    await expectAsyncThrow(
       async () => {
         for await (const val of testIteratorWithPersistedState) {
           values.push(val);
@@ -131,7 +131,13 @@ describe("AsyncIteratorWithPersistedState", () => {
       new Error("REQUESTED_THROW_AAA_3")
     );
 
-    expect(values).toMatchInlineSnapshot(`Array []`);
+    expect(values).toMatchInlineSnapshot(`
+      Array [
+        0,
+        1,
+        2,
+      ]
+    `);
   });
 
   it("works fine with delayed iteration that throws", async () => {
@@ -149,7 +155,7 @@ describe("AsyncIteratorWithPersistedState", () => {
 
     const values: number[] = [];
 
-    expectAsyncThrow(
+    await expectAsyncThrow(
       async () => {
         for await (const val of testIteratorWithPersistedState) {
           values.push(val);

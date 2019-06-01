@@ -1,4 +1,4 @@
 export * from "./decorators";
 export * from "./iterators";
-export * from "./other";
+export * from "./types";
 export * from "./timers";

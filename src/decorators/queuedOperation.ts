@@ -14,10 +14,12 @@ const getOperationQueueFromOptions = (
     return createOperationQueue();
   }
 
+  /* istanbul ignore next */
   if (typeof options === "function") {
     return options(decoratorOptions);
   }
 
+  /* istanbul ignore next */
   throw new Error(`Invalid queuedOperation options!`);
 };
 

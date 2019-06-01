@@ -1,3 +1,5 @@
+/* istanbul ignore file */
+
 import { CustomError } from "ts-custom-error";
 
 export type GetKeyFromArgs = (...args: any[]) => string;

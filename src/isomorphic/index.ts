@@ -4,3 +4,4 @@ export * from "./isNodeJS";
 export * from "./isomorphicBase64";
 export * from "./isomorphicCrypto";
 export * from "./isProduction";
+export * from "./isTest";

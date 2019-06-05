@@ -22,10 +22,13 @@ npm install @elderapo/utils
 
 - [ ] TypeORM: typeORMAlwaysLowerCaseTransformer, typeORMBigIntTransformer, FloatCryptoAmount, UUIDGeneratedColumn
 - [ ] Remove iterators and add channel utils (or perhaps channel wrapper class with chained util methods).
-- [ ] SubscribtionWithInitDataService
+- [ ] SubscribtionWithInitDataService & @SubscriptionWithInitData
+- [ ] CryptoAmountFormatterService - maybe just as bunch of functions
+- [ ] CoinType (?)
+- [ ] createLogger
 - [ ] (?) translation helper - error/notification lookuper - enum -> payload, instance retrieval
 - [ ] (?) safe RNG generator
-- [ ] satoshiToBitcoin & bitcoinToSatoshi
+- [ ] satoshiCalculator & isLessThanSatoshi
 
 ## License
 

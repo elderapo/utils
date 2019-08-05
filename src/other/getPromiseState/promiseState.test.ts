@@ -1,7 +1,8 @@
-import { isPending, isRejected, isResolved, promiseState, PromiseState } from "./promiseState";
-import { noop } from "./noop";
+import { isPending, isRejected, isResolved, getPromiseState } from "./getPromiseState";
+import { noop } from "../noop";
+import { PromiseState } from "./PromiseState";
 
-describe("promiseState", () => {
+describe("getPromiseState", () => {
   const pending = new Promise(noop);
   const resolved = new Promise<string>(resolve => resolve("SUCCESS"));
   const rejected = new Promise((resolve, reject) => reject(new Error("REJECTED")));
@@ -11,20 +12,20 @@ describe("promiseState", () => {
   /* tslint:disable:no-floating-promises */
 
   it("should resolve pending state", async () => {
-    expect(promiseState(pending)).resolves.toMatchObject({
+    expect(getPromiseState(pending)).resolves.toMatchObject({
       state: PromiseState.Pending
     });
   });
 
   it("should resolve resolved state", async () => {
-    expect(promiseState(resolved)).resolves.toMatchObject({
+    expect(getPromiseState(resolved)).resolves.toMatchObject({
       state: PromiseState.Resolved,
       value: "SUCCESS"
     });
   });
 
   it("should resolve rejected state", async () => {
-    expect(promiseState(rejected)).resolves.toMatchObject({
+    expect(getPromiseState(rejected)).resolves.toMatchObject({
       state: PromiseState.Rejected,
       err: new Error("REJECTED")
     });

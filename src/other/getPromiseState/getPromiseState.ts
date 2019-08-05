@@ -1,8 +1,4 @@
-export enum PromiseState {
-  Pending,
-  Resolved,
-  Rejected
-}
+import { PromiseState } from "./PromiseState";
 
 export type PromiseStateType<T> =
   | PromiseStateTypePending
@@ -23,7 +19,7 @@ export type PromiseStateTypeRejected = {
   err: any;
 };
 
-export const promiseState = async <T>(promise: Promise<T>): Promise<PromiseStateType<T>> => {
+export const getPromiseState = async <T>(promise: Promise<T>): Promise<PromiseStateType<T>> => {
   try {
     const value = await Promise.race([promise, PromiseState.Pending]);
 
@@ -49,7 +45,7 @@ export const isPromiseState = async <T>(
   promise: Promise<T>,
   expectedState: PromiseState
 ): Promise<boolean> => {
-  const { state } = await promiseState(promise);
+  const { state } = await getPromiseState(promise);
 
   return state === expectedState;
 };

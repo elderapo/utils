@@ -1,4 +1,5 @@
 export * from "./getObjectReferenceID";
+export * from "./getPromiseState";
 export * from "./mutateReadonlyProperty";
 export * from "./noop";
-export * from "./promiseState";
+export * from "./string-utils";

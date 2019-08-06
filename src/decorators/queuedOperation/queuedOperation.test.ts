@@ -1,6 +1,6 @@
-import { sleep, waitImmediate } from "../timers";
+import { sleep, waitImmediate } from "../../timers";
 import { queuedOperation, createOperationQueue } from "./queuedOperation";
-import { expectAsyncThrow } from "../test-utils";
+import { expectAsyncThrow } from "../../test-utils";
 
 describe("queuedOperation", () => {
   it("uses instance method separate queue by default", async () => {

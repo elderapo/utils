@@ -1,4 +1,4 @@
-import { ValueOf } from "../types";
+import { ValueOf } from "../../types";
 
 export const isValidEnum = <ENUM, ENUMITEM extends ValueOf<ENUM>>(
   Enum: ENUM,

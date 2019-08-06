@@ -1,5 +1,4 @@
-// const Big = require("big.js"); // do not chage lul
-import Big from "big.js";
+import * as math from "mathjs";
 
 const isInteger = (num: any) => typeof num === "number" && num % 1 === 0;
 const toNumber = (notNum: string | number) => Number(notNum);
@@ -28,8 +27,7 @@ export const satoshiToBitcoin = (
     );
   }
 
-  const bigSatoshi = new Big(satoshi);
-  return Number(bigSatoshi.div(CONVERSION));
+  return math.divide(Number(satoshi), CONVERSION);
 };
 
 export const bitcoinToSatoshi = (bitcoin: number | string): number => {
@@ -46,6 +44,9 @@ export const bitcoinToSatoshi = (bitcoin: number | string): number => {
     );
   }
 
-  const bigBitcoin = new Big(bitcoin);
-  return Number(bigBitcoin.times(CONVERSION));
+  return parseFloat(
+    math
+      .number(math.multiply(math.bignumber(bitcoin), math.bignumber(CONVERSION)).toString())
+      .toString()
+  );
 };

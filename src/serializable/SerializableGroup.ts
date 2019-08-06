@@ -14,13 +14,13 @@ export class SerializableGroup<PAYLOADS, TYPENAME extends string, BASE_CLASS_SHA
   ) {}
 
   public createClassConstructor<ID extends keyof PAYLOADS, PAYLOAD = PAYLOADS[ID]>(id: ID) {
-    const ___typename___ = this.options.typename;
+    const typename = this.options.typename;
     const BaseClass = (this.options.BaseClass || Object) as Constructable<Object>;
 
     const Class = class extends BaseClass {
       public readonly id: ID;
       public readonly payload: PAYLOAD;
-      public readonly ___typename___ = ___typename___;
+      public readonly ["___typename___"] = typename;
 
       constructor(payload: PAYLOAD) {
         super();
@@ -30,7 +30,7 @@ export class SerializableGroup<PAYLOADS, TYPENAME extends string, BASE_CLASS_SHA
       }
     };
 
-    Object.defineProperty(Class, "name", { value: `${___typename___}<${id}>` });
+    Object.defineProperty(Class, "name", { value: `${typename}<${id}>` });
 
     this.cache.set(id, Class);
 
@@ -72,7 +72,7 @@ export class SerializableGroup<PAYLOADS, TYPENAME extends string, BASE_CLASS_SHA
       throw new SerializeGroupTransformationError(this, { id, payload });
     }
 
-    const Class = this.cache.get(id)!;
+    const Class = this.cache.get(id);
 
     return new Class(payload) as {
       id: ID;

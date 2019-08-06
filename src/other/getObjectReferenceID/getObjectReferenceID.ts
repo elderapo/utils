@@ -26,7 +26,7 @@ export const getObjectReferenceID = (obj: Object): ObjectReference => {
 };
 
 /* istanbul ignore next */
-export const __resetObjectReferenceIDCache = () => {
+export const resetObjectReferenceIDCache = () => {
   cache = new WeakMap();
   typeObjectIdCache = new Map();
   globalObjectId = 0;

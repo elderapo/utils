@@ -1,3 +1,4 @@
+export * from "./cryptocurrency";
 export * from "./decorators";
 export * from "./iterators";
 export * from "./number-utils";

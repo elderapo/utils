@@ -1,8 +1,8 @@
-import { __resetObjectReferenceIDCache, getObjectReferenceID } from "./getObjectReferenceID";
+import { resetObjectReferenceIDCache, getObjectReferenceID } from "./getObjectReferenceID";
 
 describe("getObjectReferenceID", () => {
   afterEach(() => {
-    __resetObjectReferenceIDCache();
+    resetObjectReferenceIDCache();
   });
 
   it("should return object", () => {

@@ -14,19 +14,21 @@ import { getMetadataStorage } from "type-graphql/dist/metadata/getMetadataStorag
 import { noop } from "../../other";
 import { SyncOrAsync } from "../../types";
 
-export interface IReCAPTCHAOptions {
-  getValidateFN: () => (token: string, ip?: string) => SyncOrAsync<void>;
+export interface IReCAPTCHAOptions<CONTEXT extends {}> {
+  getValidateFN: () => (token: string, resolverData: ResolverData<CONTEXT>) => SyncOrAsync<void>;
   disabled?: boolean;
   tokenFieldKey?: string;
 }
 
-const defaultOptions = Object.freeze<Required<IReCAPTCHAOptions>>({
+const defaultOptions = Object.freeze<Required<IReCAPTCHAOptions<any>>>({
   getValidateFN: () => () => noop(),
   disabled: false,
   tokenFieldKey: "_reCAPTCHAToken"
 });
 
-export const createReCAPTCHADecorator = (_options: IReCAPTCHAOptions) => {
+export const createReCAPTCHADecorator = <CONTEXT extends {} = any>(
+  _options: IReCAPTCHAOptions<CONTEXT>
+) => {
   const options = Object.assign({}, defaultOptions, _options);
 
   @ArgsType()
@@ -56,11 +58,9 @@ export const createReCAPTCHADecorator = (_options: IReCAPTCHAOptions) => {
 
   class ReCAPTCHAMiddleware implements MiddlewareInterface {
     async use(data: ResolverData<any>, next: NextFn) {
-      const ip = "";
-
       const validateFN = options.getValidateFN();
 
-      await validateFN(data.args[options.tokenFieldKey], ip);
+      await validateFN(data.args[options.tokenFieldKey], data);
 
       return next();
     }

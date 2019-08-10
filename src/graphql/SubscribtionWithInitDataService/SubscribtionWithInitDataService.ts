@@ -4,24 +4,23 @@ import { Channel } from "@channel/channel";
 import { chronologicallyChainChannels } from "../../channels";
 import { SyncOrAsync } from "../../types";
 
-export interface ISubscriptionContext {
+export interface ISubscriptionInfo<CONTEXT> {
   rootValue: any;
   args: any;
-  context: any;
+  context: CONTEXT;
   info: any;
 }
 
-export abstract class SubscribtionWithInitDataService<
-  UPDATE_DATA,
-  INIT_DATA extends UPDATE_DATA | UPDATE_DATA[]
-> {
+export type SubscriptionUpdateData<T> = T extends Array<infer U> ? U : T;
+
+export abstract class SubscribtionWithInitDataService<INIT_DATA, CONTEXT extends {} = any> {
   public subscribe(
     _rootValue: any,
     _args: any,
     _context: any,
     _info: any
-  ): Channel<INIT_DATA | UPDATE_DATA> {
-    const ctx: ISubscriptionContext = {
+  ): Channel<INIT_DATA | SubscriptionUpdateData<INIT_DATA>> {
+    const ctx: ISubscriptionInfo<CONTEXT> = {
       rootValue: _rootValue,
       args: _args,
       context: _context,
@@ -38,13 +37,15 @@ export abstract class SubscribtionWithInitDataService<
 
     const liveUpdatesChannel = this.getLiveUpdatesStream(ctx);
 
-    return chronologicallyChainChannels<INIT_DATA | UPDATE_DATA>([
+    return chronologicallyChainChannels<INIT_DATA | SubscriptionUpdateData<INIT_DATA>>([
       getInitDataChannel,
       liveUpdatesChannel
     ]);
   }
 
-  protected abstract getInitData(ctx: ISubscriptionContext): SyncOrAsync<INIT_DATA>;
+  protected abstract getInitData(ctx: ISubscriptionInfo<CONTEXT>): SyncOrAsync<INIT_DATA>;
 
-  protected abstract getLiveUpdatesStream(ctx: ISubscriptionContext): Channel<UPDATE_DATA>;
+  protected abstract getLiveUpdatesStream(
+    ctx: ISubscriptionInfo<CONTEXT>
+  ): Channel<SubscriptionUpdateData<INIT_DATA>>;
 }

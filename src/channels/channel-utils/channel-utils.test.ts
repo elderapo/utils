@@ -1,10 +1,13 @@
-import "core-js/modules/es.symbol.async-iterator";
-
 import { noop } from "@babel/types";
 import { Channel } from "@channel/channel";
 import { filterChannel, mapChannel } from "./channel-utils";
+import { fixAsyncIteratorSymbol } from "../../test-utils";
 
 describe("channel-utils", () => {
+  beforeAll(() => {
+    fixAsyncIteratorSymbol();
+  });
+
   const waitForAllValues = async <T>(channel: Channel<T>): Promise<T[]> => {
     const values: T[] = [];
 

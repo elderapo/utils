@@ -13,7 +13,6 @@ describe("waitImmediate", () => {
 
     const [afterS, afterNS] = process.hrtime();
 
-    expect(beforeNS).not.toBe(afterNS);
-    expect(beforeS).toBe(afterS); // it's very unlikely that this will fail ?
+    expect(`${beforeS}:${beforeNS}`).not.toBe(`${afterS}:${afterNS}`);
   });
 });

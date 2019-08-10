@@ -1,3 +1,5 @@
+import "core-js/es/symbol/async-iterator";
+
 import { Channel } from "@channel/channel";
 import { sleep } from "../../timers";
 import { chronologicallyChainChannels } from "./chronologicallyChainChannels";

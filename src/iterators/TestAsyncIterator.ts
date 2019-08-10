@@ -1,4 +1,3 @@
-import "core-js/modules/es.symbol.async-iterator";
 import { sleep } from "../timers";
 import { DeepReadonly } from "../types";
 

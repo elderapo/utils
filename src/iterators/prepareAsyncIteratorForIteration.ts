@@ -1,5 +1,3 @@
-import "core-js/modules/es.symbol.async-iterator";
-
 export class IterableAsyncIterator<T> {
   constructor(private target: AsyncIterator<T>) {}
 

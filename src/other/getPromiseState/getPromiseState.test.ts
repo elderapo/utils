@@ -1,4 +1,9 @@
-import { isPending, isRejected, isResolved, getPromiseState } from "./getPromiseState";
+import {
+  isPromisePending,
+  isPromiseRejected,
+  isPromiseResolved,
+  getPromiseState
+} from "./getPromiseState";
 import { noop } from "../noop";
 import { PromiseState } from "./PromiseState";
 
@@ -32,21 +37,21 @@ describe("getPromiseState", () => {
   });
 
   it("isPending should work", async () => {
-    expect(isPending(pending)).resolves.toBe(true);
-    expect(isPending(resolved)).resolves.toBe(false);
-    expect(isPending(rejected)).resolves.toBe(false);
+    expect(isPromisePending(pending)).resolves.toBe(true);
+    expect(isPromisePending(resolved)).resolves.toBe(false);
+    expect(isPromisePending(rejected)).resolves.toBe(false);
   });
 
   it("should resolve resolved state", async () => {
-    expect(isResolved(pending)).resolves.toBe(false);
-    expect(isResolved(resolved)).resolves.toBe(true);
-    expect(isResolved(rejected)).resolves.toBe(false);
+    expect(isPromiseResolved(pending)).resolves.toBe(false);
+    expect(isPromiseResolved(resolved)).resolves.toBe(true);
+    expect(isPromiseResolved(rejected)).resolves.toBe(false);
   });
 
   it("should resolve rejected state", async () => {
-    expect(isRejected(pending)).resolves.toBe(false);
-    expect(isRejected(resolved)).resolves.toBe(false);
-    expect(isRejected(rejected)).resolves.toBe(true);
+    expect(isPromiseRejected(pending)).resolves.toBe(false);
+    expect(isPromiseRejected(resolved)).resolves.toBe(false);
+    expect(isPromiseRejected(rejected)).resolves.toBe(true);
   });
 
   /* tslint:enable:no-floating-promises */

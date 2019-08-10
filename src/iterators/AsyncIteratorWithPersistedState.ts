@@ -1,4 +1,3 @@
-import "core-js/modules/es.symbol.async-iterator";
 import { waitImmediate } from "../timers";
 import { prepareAsyncIteratorForIteration } from "./prepareAsyncIteratorForIteration";
 

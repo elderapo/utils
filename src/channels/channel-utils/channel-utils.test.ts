@@ -1,4 +1,4 @@
-import "core-js/es/symbol/async-iterator";
+import "core-js/modules/es.symbol.async-iterator";
 
 import { noop } from "@babel/types";
 import { Channel } from "@channel/channel";

@@ -1,4 +1,4 @@
-import "core-js/es/symbol/async-iterator";
+import "core-js/modules/es.symbol.async-iterator";
 
 import { Channel } from "@channel/channel";
 import { sleep } from "../../timers";

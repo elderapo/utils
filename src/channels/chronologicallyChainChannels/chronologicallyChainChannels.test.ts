@@ -1,6 +1,7 @@
 import { Channel } from "@channel/channel";
 import { sleep } from "../../timers";
 import { chronologicallyChainChannels } from "./chronologicallyChainChannels";
+import { createCallOrderCheckerHelper } from "../../test-utils";
 
 describe("chronologicallyChainChannels", () => {
   const waitForAllValues = async <T extends {}>(
@@ -20,41 +21,27 @@ describe("chronologicallyChainChannels", () => {
     return values;
   };
 
-  const createCallOrderCheckerHelper = () => {
-    let i = 0;
-
-    return () => {
-      const callID = i++;
-
-      return callID;
-    };
-  };
-
   it("should work with non delayed pushes", async () => {
+    expect.assertions(3);
     const getCallIndex = createCallOrderCheckerHelper();
 
     const initChannel = new Channel<number>(async (push, stop) => {
       expect(getCallIndex()).toBe(0);
+
       await push(1);
-      expect(getCallIndex()).toBe(2);
+
       stop();
-      expect(getCallIndex()).toBe(3);
     });
 
     const liveUpdateChannel = new Channel<number>(async (push, stop) => {
       expect(getCallIndex()).toBe(1);
+
       await push(2);
-      expect(getCallIndex()).toBe(4);
       await push(3);
-      expect(getCallIndex()).toBe(5);
       await push(4);
-      expect(getCallIndex()).toBe(6);
       await push(5);
-      expect(getCallIndex()).toBe(7);
 
       stop();
-
-      expect(getCallIndex()).toBe(8);
     });
 
     await expect(waitForAllValues([initChannel, liveUpdateChannel])).resolves
@@ -74,35 +61,41 @@ describe("chronologicallyChainChannels", () => {
 
     const initChannel = new Channel<number>(async (push, stop) => {
       expect(getCallIndex()).toBe(0);
-      await push(1);
-      expect(getCallIndex()).toBe(2);
+
       await sleep(10);
-      expect(getCallIndex()).toBe(4);
+      await push(1);
+
+      expect(getCallIndex()).toBe(2);
+
       stop();
-      expect(getCallIndex()).toBe(5);
+      expect(getCallIndex()).toBe(3);
     });
 
     const liveUpdateChannel = new Channel<number>(async (push, stop) => {
       expect(getCallIndex()).toBe(1);
+
+      await sleep(50);
       await push(2);
-      expect(getCallIndex()).toBe(3);
-      await sleep(10);
-      expect(getCallIndex()).toBe(6);
+
+      expect(getCallIndex()).toBe(4);
+
+      await sleep(50);
       await push(3);
-      expect(getCallIndex()).toBe(7);
-      await sleep(10);
-      expect(getCallIndex()).toBe(8);
+
+      expect(getCallIndex()).toBe(5);
+
+      await sleep(50);
       await push(4);
-      expect(getCallIndex()).toBe(9);
-      await sleep(10);
-      expect(getCallIndex()).toBe(10);
+
+      expect(getCallIndex()).toBe(6);
+
+      await sleep(50);
       await push(5);
-      expect(getCallIndex()).toBe(11);
-      await sleep(10);
-      expect(getCallIndex()).toBe(12);
+
+      expect(getCallIndex()).toBe(7);
 
       stop();
-      expect(getCallIndex()).toBe(13);
+      expect(getCallIndex()).toBe(8);
     });
 
     await expect(waitForAllValues([initChannel, liveUpdateChannel])).resolves
@@ -122,35 +115,41 @@ describe("chronologicallyChainChannels", () => {
 
     const initChannel = new Channel<number>(async (push, stop) => {
       expect(getCallIndex()).toBe(0);
-      await sleep(100);
-      expect(getCallIndex()).toBe(11);
+
+      await sleep(50);
       await push(1);
-      expect(getCallIndex()).toBe(12);
+
+      expect(getCallIndex()).toBe(3);
+
       stop();
-      expect(getCallIndex()).toBe(13);
+      expect(getCallIndex()).toBe(4);
     });
 
     const liveUpdateChannel = new Channel<number>(async (push, stop) => {
       expect(getCallIndex()).toBe(1);
+
+      await sleep(40);
       await push(2);
+
       expect(getCallIndex()).toBe(2);
-      await sleep(10);
-      expect(getCallIndex()).toBe(3);
+
+      await sleep(40);
       await push(3);
-      expect(getCallIndex()).toBe(4);
-      await sleep(10);
+
       expect(getCallIndex()).toBe(5);
+
+      await sleep(20);
       await push(4);
+
       expect(getCallIndex()).toBe(6);
-      await sleep(10);
-      expect(getCallIndex()).toBe(7);
+
+      await sleep(20);
       await push(5);
-      expect(getCallIndex()).toBe(8);
-      await sleep(10);
-      expect(getCallIndex()).toBe(9);
+
+      expect(getCallIndex()).toBe(7);
 
       stop();
-      expect(getCallIndex()).toBe(10);
+      expect(getCallIndex()).toBe(8);
     });
 
     await expect(waitForAllValues([initChannel, liveUpdateChannel])).resolves
@@ -170,34 +169,48 @@ describe("chronologicallyChainChannels", () => {
 
     const initChannel = new Channel<number>(async (push, stop) => {
       expect(getCallIndex()).toBe(0);
-      await sleep(100);
-      expect(getCallIndex()).toBe(9);
+
+      await sleep(700);
       await push(1);
-      expect(getCallIndex()).toBe(10);
+
+      expect(getCallIndex()).toBe(9);
+
       stop();
-      expect(getCallIndex()).toBe(11);
+      expect(getCallIndex()).toBe(10);
     });
 
     const liveUpdateChannel1 = new Channel<number>(async (push, stop) => {
       expect(getCallIndex()).toBe(1);
+
+      await sleep(100);
       await push(2);
-      expect(getCallIndex()).toBe(3);
-      await push(3);
-      expect(getCallIndex()).toBe(5);
 
-      stop();
       expect(getCallIndex()).toBe(6);
-    });
 
-    const liveUpdateChannel2 = new Channel<number>(async (push, stop) => {
-      expect(getCallIndex()).toBe(2);
-      await push(4);
-      expect(getCallIndex()).toBe(4);
-      await push(5);
+      await sleep(100);
+      await push(3);
+
       expect(getCallIndex()).toBe(7);
 
       stop();
       expect(getCallIndex()).toBe(8);
+    });
+
+    const liveUpdateChannel2 = new Channel<number>(async (push, stop) => {
+      expect(getCallIndex()).toBe(2);
+
+      await push(4);
+      await sleep(20);
+
+      expect(getCallIndex()).toBe(3);
+
+      await push(5);
+      await sleep(20);
+
+      expect(getCallIndex()).toBe(4);
+
+      stop();
+      expect(getCallIndex()).toBe(5);
     });
 
     await expect(waitForAllValues([initChannel, liveUpdateChannel1, liveUpdateChannel2])).resolves
@@ -217,35 +230,41 @@ describe("chronologicallyChainChannels", () => {
 
     const initChannel = new Channel<number>(async (push, stop) => {
       expect(getCallIndex()).toBe(0);
-      await sleep(100);
-      expect(getCallIndex()).toBe(9);
-      await push(1);
-      expect(getCallIndex()).toBe(10);
-      await sleep(100);
-      expect(getCallIndex()).toBe(11);
-      await push(2);
-      expect(getCallIndex()).toBe(12);
-      stop();
-      expect(getCallIndex()).toBe(13);
-    });
 
-    const liveUpdateChannel = new Channel<number>(async (push, stop) => {
-      expect(getCallIndex()).toBe(1);
-      await push(3);
-      expect(getCallIndex()).toBe(2);
-      await sleep(10);
-      expect(getCallIndex()).toBe(3);
-      await push(4);
-      expect(getCallIndex()).toBe(4);
-      await sleep(10);
-      expect(getCallIndex()).toBe(5);
-      await push(5);
+      await sleep(100);
+      await push(1);
+
       expect(getCallIndex()).toBe(6);
-      await sleep(10);
+
+      await sleep(100);
+      await push(2);
+
       expect(getCallIndex()).toBe(7);
 
       stop();
       expect(getCallIndex()).toBe(8);
+    });
+
+    const liveUpdateChannel = new Channel<number>(async (push, stop) => {
+      expect(getCallIndex()).toBe(1);
+
+      await push(3);
+      await sleep(10);
+
+      expect(getCallIndex()).toBe(2);
+
+      await push(4);
+      await sleep(10);
+
+      expect(getCallIndex()).toBe(3);
+
+      await push(5);
+      await sleep(10);
+
+      expect(getCallIndex()).toBe(4);
+
+      stop();
+      expect(getCallIndex()).toBe(5);
     });
 
     await expect(waitForAllValues([initChannel, liveUpdateChannel], 1)).resolves
@@ -261,35 +280,39 @@ describe("chronologicallyChainChannels", () => {
 
     const initChannel = new Channel<number>(async (push, stop) => {
       expect(getCallIndex()).toBe(0);
-      await sleep(100);
-      expect(getCallIndex()).toBe(9);
+
+      await sleep(1);
       await push(1);
-      expect(getCallIndex()).toBe(10);
+
+      expect(getCallIndex()).toBe(2);
+
       await sleep(100);
-      expect(getCallIndex()).toBe(11);
       await push(2);
-      expect(getCallIndex()).toBe(12);
+
       stop();
-      expect(getCallIndex()).toBe(13);
+      expect(getCallIndex()).toBe(7);
     });
 
     const liveUpdateChannel = new Channel<number>(async (push, stop) => {
       expect(getCallIndex()).toBe(1);
+
       await push(3);
-      expect(getCallIndex()).toBe(2);
       await sleep(10);
+
       expect(getCallIndex()).toBe(3);
+
       await push(4);
+      await sleep(10);
+
       expect(getCallIndex()).toBe(4);
-      await sleep(10);
-      expect(getCallIndex()).toBe(5);
+
       await push(5);
-      expect(getCallIndex()).toBe(6);
       await sleep(10);
-      expect(getCallIndex()).toBe(7);
+
+      expect(getCallIndex()).toBe(5);
 
       stop();
-      expect(getCallIndex()).toBe(8);
+      expect(getCallIndex()).toBe(6);
     });
 
     await expect(waitForAllValues([initChannel, liveUpdateChannel], 4)).resolves
@@ -308,23 +331,28 @@ describe("chronologicallyChainChannels", () => {
 
     const initChannel = new Channel<number>(async (push, stop) => {
       expect(getCallIndex()).toBe(0);
-      await sleep(100);
-      expect(getCallIndex()).toBe(3);
+
+      await sleep(50);
       await push(1);
-      expect(getCallIndex()).toBe(4);
+
+      expect(getCallIndex()).toBe(2);
+
       throw new Error(`INIT_CHANNEL_ERROR`);
     });
 
     const liveUpdateChannel = new Channel<number>(async (push, stop) => {
       expect(getCallIndex()).toBe(1);
+
       await push(3);
-      expect(getCallIndex()).toBe(2);
       await sleep(100);
-      expect(getCallIndex()).toBe(5);
+
+      expect(getCallIndex()).toBe(3);
+
       await push(4);
-      expect(getCallIndex()).toBe(6);
       await sleep(100);
-      expect(getCallIndex()).toBe(7);
+
+      expect(getCallIndex()).toBe(4);
+
       throw new Error(`LIVE_UPDATE_CHANNEL_ERROR`);
     });
 
@@ -338,21 +366,32 @@ describe("chronologicallyChainChannels", () => {
 
     const initChannel = new Channel<number>(async (push, stop) => {
       expect(getCallIndex()).toBe(0);
-      await sleep(300);
-      expect(getCallIndex()).toBe(5);
+
+      await sleep(10);
+      await push(1);
+
+      expect(getCallIndex()).toBe(2);
+
+      await sleep(10);
+      await push(2);
+
+      expect(getCallIndex()).toBe(3);
 
       stop();
-      expect(getCallIndex()).toBe(6);
+      expect(getCallIndex()).toBe(4);
     });
 
     const liveUpdateChannel = new Channel<number>(async (push, stop) => {
       expect(getCallIndex()).toBe(1);
-      await sleep(10);
-      expect(getCallIndex()).toBe(2);
+
+      await sleep(50);
       await push(3);
-      expect(getCallIndex()).toBe(3);
+
+      expect(getCallIndex()).toBe(5);
+
       await sleep(100);
-      expect(getCallIndex()).toBe(4);
+
+      expect(getCallIndex()).toBe(6);
 
       throw new Error(`LIVE_UPDATE_CHANNEL_ERROR`);
     });

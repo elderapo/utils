@@ -33,7 +33,10 @@ export const createReCAPTCHADecorator = <CONTEXT extends {} = any>(
 
   @ArgsType()
   class ReCAPTCHAArgs {}
-  Field(type => String, { nullable: options.disabled })(ReCAPTCHAArgs, options.tokenFieldKey);
+  Field(type => String, { nullable: options.disabled })(
+    ReCAPTCHAArgs.prototype,
+    options.tokenFieldKey
+  );
 
   const AddReCAPTCHAArgs = (): MethodDecorator | PropertyDecorator => {
     const returnTypeFunc = () => ReCAPTCHAArgs;

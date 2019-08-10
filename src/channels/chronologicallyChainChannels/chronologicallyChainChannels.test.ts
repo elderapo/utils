@@ -1,13 +1,8 @@
 import { Channel } from "@channel/channel";
 import { sleep } from "../../timers";
 import { chronologicallyChainChannels } from "./chronologicallyChainChannels";
-import { fixAsyncIteratorSymbol } from "../../test-utils";
 
 describe("chronologicallyChainChannels", () => {
-  beforeAll(() => {
-    fixAsyncIteratorSymbol();
-  });
-
   const waitForAllValues = async <T extends {}>(
     channels: Channel<T>[],
     exitLoopOn?: T

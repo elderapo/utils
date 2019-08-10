@@ -1,6 +1,6 @@
 import { Channel } from "@channel/channel";
 import { sleep } from "../../timers";
-import { chronologicallyChainChannels } from "../chronologicallyChainChannels";
+import { chronologicallyChainChannels } from "./chronologicallyChainChannels";
 
 describe("chronologicallyChainChannels", () => {
   const waitForAllValues = async <T extends {}>(

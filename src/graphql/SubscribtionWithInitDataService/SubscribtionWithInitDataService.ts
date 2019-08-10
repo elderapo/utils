@@ -15,7 +15,12 @@ export abstract class SubscribtionWithInitDataService<
   UPDATE_DATA,
   INIT_DATA extends UPDATE_DATA | UPDATE_DATA[]
 > {
-  public subscribe(_rootValue: any, _args: any, _context: any, _info: any) {
+  public subscribe(
+    _rootValue: any,
+    _args: any,
+    _context: any,
+    _info: any
+  ): Channel<INIT_DATA | UPDATE_DATA> {
     const ctx: ISubscriptionContext = {
       rootValue: _rootValue,
       args: _args,

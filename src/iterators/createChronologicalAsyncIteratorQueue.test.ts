@@ -185,7 +185,7 @@ describe("createChronologicalAsyncIteratorQueue", () => {
             `);
   });
 
-  it.only("combining 2 non throwing iterators and second returns should work", async () => {
+  it("combining 2 non throwing iterators and second returns should work", async () => {
     const it1 = new TestAsyncIterator({
       from: 0,
       to: 10,

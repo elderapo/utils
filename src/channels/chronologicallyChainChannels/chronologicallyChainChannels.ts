@@ -1,8 +1,8 @@
+import { noop } from "@babel/types";
 import { Channel } from "@channel/channel";
+import { Deferred } from "ts-deferred";
+import { isPromisePending } from "../../other";
 import { InfiniteCapacityBuffer } from "../InfiniteCapacityBuffer";
-import { sleep, waitImmediate } from "../../timers";
-
-const BAIL_OUT = Symbol();
 
 const channelToInfiniteCapacityBufferChannel = <T>(channel: Channel<T>): Channel<T> => {
   return new Channel<T>(async (push, stop) => {
@@ -11,85 +11,87 @@ const channelToInfiniteCapacityBufferChannel = <T>(channel: Channel<T>): Channel
         await push(val);
       }
     } catch (ex) {
-      await stop(ex);
+      stop(ex);
       return;
     }
 
-    await stop();
+    stop();
   }, new InfiniteCapacityBuffer());
+};
+
+const createSafeExecutaionContext = (fn: () => Promise<any>): void => {
+  fn().catch(ex => {
+    console.error(`Function passed to createSafeExecutaionContext threw and error:`, ex);
+  });
 };
 
 export const chronologicallyChainChannels = <T>(channels: Channel<T>[]): Channel<T> => {
   const forwardingChannels: Channel<T>[] = channels.map(channelToInfiniteCapacityBufferChannel);
 
   return new Channel<T>(async (push, stop) => {
-    let exception: Error | null = null;
+    const exceptionDefer = new Deferred<Error>();
 
-    const doneMap = new WeakMap<Channel<T>, boolean>();
+    const doneDefers = new WeakMap<Channel<T>, Deferred<void>>();
+    forwardingChannels.forEach(forwardingChannel =>
+      doneDefers.set(forwardingChannel, new Deferred<void>())
+    );
 
-    const promises: Promise<any>[] = [];
+    const pushWithOrder = async (caller: Channel<T>, value: T): Promise<void> => {
+      const previousCallerIndex = forwardingChannels.findIndex(item => item === caller) - 1;
+      const previousCaller = forwardingChannels[previousCallerIndex] || null;
+      const result = await Promise.race([
+        exceptionDefer.promise,
+        previousCaller ? doneDefers.get(previousCaller)!.promise : null
+      ]);
 
-    const isPreviousDone = (channel: Channel<T>): boolean => {
-      const previousIndex = forwardingChannels.indexOf(channel) - 1;
-
-      if (previousIndex < 0) {
-        return true;
+      if (result instanceof Error) {
+        throw new Error(`Bailing out...`);
       }
 
-      const previous = forwardingChannels[previousIndex];
-
-      return previous ? doneMap.get(previous)! : true;
+      await push(value);
     };
 
-    const onException = (ex: Error): void => {
-      console.log("SEtting ex", ex);
-      exception = exception || ex;
+    const isEveyoneDone = async (): Promise<boolean> => {
+      for (let forwardingChannel of forwardingChannels) {
+        if (await isPromisePending(doneDefers.get(forwardingChannel)!.promise)) {
+          return false;
+        }
+      }
 
-      // forwardingChannels.forEach(forwardingChannel => forwardingChannel.return());
-      // forwardingChannels.forEach(forwardingChannel => {
-      //   console.log("NO KURWA...");
-      //   forwardingChannel.next(BAIL_OUT);
-      //   doneMap.set(forwardingChannel, true);
-      // });
+      return true;
+    };
+
+    const takeException = async (caller: Channel<T>, ex: Error): Promise<void> => {
+      if (!(await isPromisePending(exceptionDefer.promise))) {
+        return;
+      }
+
+      exceptionDefer.resolve(ex);
+      stop(ex);
+
+      forwardingChannels.forEach(forwardingChannel => forwardingChannel.return());
+    };
+
+    const finish = async (caller: Channel<T>): Promise<void> => {
+      doneDefers.get(caller)!.resolve();
+
+      if (await isEveyoneDone()) {
+        stop();
+      }
     };
 
     for (const forwardingChannel of forwardingChannels) {
-      /* tslint:disable */
-
-      const p = (async (forwardingChannel, exception) => {
+      createSafeExecutaionContext(async () => {
         try {
           for await (const value of forwardingChannel) {
-            while (!isPreviousDone(forwardingChannel)) {
-              if (exception) {
-                break;
-              }
-
-              await waitImmediate();
-            }
-
-            if ((value as any) === BAIL_OUT) {
-              break;
-            }
-
-            if (exception) {
-              break;
-            }
-
-            push(value);
+            await pushWithOrder(forwardingChannel, value);
           }
         } catch (ex) {
-          onException(ex);
+          takeException(forwardingChannel, ex).catch(noop);
         }
 
-        console.log("SETTING IS DONE!");
-        doneMap.set(forwardingChannel, true);
-      })(forwardingChannel, exception);
-
-      promises.push(p);
+        finish(forwardingChannel).catch(noop);
+      });
     }
-
-    await Promise.all(promises);
-
-    await stop(exception);
   });
 };

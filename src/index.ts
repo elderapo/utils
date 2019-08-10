@@ -1,3 +1,4 @@
+export * from "./channels";
 export * from "./cryptocurrency";
 export * from "./decorators";
 export * from "./iterators";

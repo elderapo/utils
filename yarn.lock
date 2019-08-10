@@ -7557,6 +7557,11 @@ ts-custom-error@^3.1.1:
   resolved "https://registry.yarnpkg.com/ts-custom-error/-/ts-custom-error-3.1.1.tgz#d30c7415461dac93dc2cc9e9eb2dae92e6423901"
   integrity sha512-f/syoy+pTE4z82qaiRuthEeZtCGNKzlfs0Zc8jpQFcz/CYMaFSwFSdfFt1sSFnPlDLOEm7RCROdIxZ44N8UlwA==
 
+ts-deferred@^1.0.4:
+  version "1.0.4"
+  resolved "https://registry.yarnpkg.com/ts-deferred/-/ts-deferred-1.0.4.tgz#58145ebaeef5b8f2a290b8cec3d060839f9489c7"
+  integrity sha1-WBReuu71uPKikLjOw9Bgg5+Uicc=
+
 ts-jest@^24.0.0:
   version "24.0.2"
   resolved "https://registry.yarnpkg.com/ts-jest/-/ts-jest-24.0.2.tgz#8dde6cece97c31c03e80e474c749753ffd27194d"

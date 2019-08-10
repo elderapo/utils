@@ -26,8 +26,6 @@ describe("chronologicallyChainChannels", () => {
     return () => {
       const callID = i++;
 
-      console.log("CALL_ID:", callID);
-
       return callID;
     };
   };
@@ -39,14 +37,14 @@ describe("chronologicallyChainChannels", () => {
       expect(getCallIndex()).toBe(0);
       await push(1);
       expect(getCallIndex()).toBe(2);
-      await stop();
-      expect(getCallIndex()).toBe(4);
+      stop();
+      expect(getCallIndex()).toBe(3);
     });
 
     const liveUpdateChannel = new Channel<number>(async (push, stop) => {
       expect(getCallIndex()).toBe(1);
       await push(2);
-      expect(getCallIndex()).toBe(3);
+      expect(getCallIndex()).toBe(4);
       await push(3);
       expect(getCallIndex()).toBe(5);
       await push(4);
@@ -54,7 +52,7 @@ describe("chronologicallyChainChannels", () => {
       await push(5);
       expect(getCallIndex()).toBe(7);
 
-      await stop();
+      stop();
 
       expect(getCallIndex()).toBe(8);
     });
@@ -80,7 +78,7 @@ describe("chronologicallyChainChannels", () => {
       expect(getCallIndex()).toBe(2);
       await sleep(10);
       expect(getCallIndex()).toBe(4);
-      await stop();
+      stop();
       expect(getCallIndex()).toBe(5);
     });
 
@@ -103,7 +101,7 @@ describe("chronologicallyChainChannels", () => {
       await sleep(10);
       expect(getCallIndex()).toBe(12);
 
-      await stop();
+      stop();
       expect(getCallIndex()).toBe(13);
     });
 
@@ -128,7 +126,7 @@ describe("chronologicallyChainChannels", () => {
       expect(getCallIndex()).toBe(11);
       await push(1);
       expect(getCallIndex()).toBe(12);
-      await stop();
+      stop();
       expect(getCallIndex()).toBe(13);
     });
 
@@ -151,7 +149,7 @@ describe("chronologicallyChainChannels", () => {
       await sleep(10);
       expect(getCallIndex()).toBe(9);
 
-      await stop();
+      stop();
       expect(getCallIndex()).toBe(10);
     });
 
@@ -176,7 +174,7 @@ describe("chronologicallyChainChannels", () => {
       expect(getCallIndex()).toBe(9);
       await push(1);
       expect(getCallIndex()).toBe(10);
-      await stop();
+      stop();
       expect(getCallIndex()).toBe(11);
     });
 
@@ -187,8 +185,8 @@ describe("chronologicallyChainChannels", () => {
       await push(3);
       expect(getCallIndex()).toBe(5);
 
-      await stop();
-      expect(getCallIndex()).toBe(7);
+      stop();
+      expect(getCallIndex()).toBe(6);
     });
 
     const liveUpdateChannel2 = new Channel<number>(async (push, stop) => {
@@ -196,9 +194,9 @@ describe("chronologicallyChainChannels", () => {
       await push(4);
       expect(getCallIndex()).toBe(4);
       await push(5);
-      expect(getCallIndex()).toBe(6);
+      expect(getCallIndex()).toBe(7);
 
-      await stop();
+      stop();
       expect(getCallIndex()).toBe(8);
     });
 
@@ -227,7 +225,7 @@ describe("chronologicallyChainChannels", () => {
       expect(getCallIndex()).toBe(11);
       await push(2);
       expect(getCallIndex()).toBe(12);
-      await stop();
+      stop();
       expect(getCallIndex()).toBe(13);
     });
 
@@ -246,7 +244,7 @@ describe("chronologicallyChainChannels", () => {
       await sleep(10);
       expect(getCallIndex()).toBe(7);
 
-      await stop();
+      stop();
       expect(getCallIndex()).toBe(8);
     });
 
@@ -271,7 +269,7 @@ describe("chronologicallyChainChannels", () => {
       expect(getCallIndex()).toBe(11);
       await push(2);
       expect(getCallIndex()).toBe(12);
-      await stop();
+      stop();
       expect(getCallIndex()).toBe(13);
     });
 
@@ -290,7 +288,7 @@ describe("chronologicallyChainChannels", () => {
       await sleep(10);
       expect(getCallIndex()).toBe(7);
 
-      await stop();
+      stop();
       expect(getCallIndex()).toBe(8);
     });
 
@@ -343,7 +341,7 @@ describe("chronologicallyChainChannels", () => {
       await sleep(300);
       expect(getCallIndex()).toBe(5);
 
-      // await stop();
+      stop();
       expect(getCallIndex()).toBe(6);
     });
 

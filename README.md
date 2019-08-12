@@ -8,7 +8,7 @@
 [![Dev Dependencies](https://david-dm.org/elderapo/utils/dev-status.svg)](https://david-dm.org/elderapo/utils?type=dev)
 [![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2Felderapo%2Futils.svg?type=shield)](https://app.fossa.io/projects/git%2Bgithub.com%2Felderapo%2Futils?ref=badge_shield)
 
-If you are not me ([elderapo](https://github.com/elderapo)) you probably should not use this package. However if you decide to use it you have to know that shit might broke anytime. :)
+If you are not me ([elderapo](https://github.com/elderapo)) you probably should not use this package. However if you decide to do so you should know that shit might break :)
 
 ### How to install
 

@@ -3,8 +3,6 @@ import { IteratorStateHelper } from "../IteratorStateHelper";
 import { EagerlyStartedAsyncIteratorBuffer } from "./EagerlyStartedAsyncIteratorBuffer";
 
 export class EagerlyBufferedAsyncIterator<T> implements AsyncIterableIterator<T> {
-  public readonly [Symbol.asyncIterator]: () => this;
-
   private newIteratorState = new IteratorStateHelper();
   private buffer = new EagerlyStartedAsyncIteratorBuffer<T>();
 
@@ -33,16 +31,23 @@ export class EagerlyBufferedAsyncIterator<T> implements AsyncIterableIterator<T>
   }
 
   @bind
+  public [Symbol.asyncIterator](): EagerlyBufferedAsyncIterator<T> {
+    return this;
+  }
+
+  @bind
   public async next(): Promise<IteratorResult<T>> {
     return this.buffer.waitForNext();
   }
 
+  @bind
   public throw(err: Error): never {
     this.newIteratorState.markAsErrored(err);
 
     throw err;
   }
 
+  @bind
   public async return(): Promise<IteratorResult<T>> {
     this.newIteratorState.markAsDone();
 

@@ -1,4 +1,5 @@
 import { Deferred } from "ts-deferred";
+import { sleep } from "../../timers";
 
 export class EagerlyStartedAsyncIteratorBuffer<T> {
   private items: Deferred<IteratorResult<T>>[] = [];
@@ -42,12 +43,22 @@ export class EagerlyStartedAsyncIteratorBuffer<T> {
   }
 
   public async waitForNext(): Promise<IteratorResult<T>> {
+    // @TODO: optimize this
+    while (this.isEmpty() && !this.isFinished) {
+      await sleep(100);
+    }
+
     if (this.isEmpty()) {
       return { done: true, value: undefined as any };
     }
 
-    const item = this.items.shift()!;
+    const item = this.items[0];
     const result = await item.promise;
+
+    const index = this.items.indexOf(item);
+    if (index !== -1) {
+      this.items.splice(index, 1);
+    }
 
     if (result.done && this.err) {
       throw this.err;

@@ -1,6 +1,6 @@
 import { SyncOrAsync } from "../../types";
 
-export type FilterFN<T> = (item: T) => boolean;
+export type FilterFN<T> = (item: T) => SyncOrAsync<boolean>;
 export type MapFN<FROM, TO> = (item: FROM) => SyncOrAsync<TO>;
 
 export class AsyncIteratorUtilChain<T> {
@@ -11,7 +11,7 @@ export class AsyncIteratorUtilChain<T> {
 
     const createAI = async function*() {
       for await (const item of iterator) {
-        if (filterFN(item)) {
+        if (await filterFN(item)) {
           yield item;
         }
       }

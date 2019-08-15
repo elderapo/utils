@@ -1,5 +1,7 @@
 import { AsyncIteratorUtilChain } from "./AsyncIteratorUtilChain";
 
-export const createAsyncIteratorUtilChain = <T>(inIT: AsyncIterableIterator<T>) => {
-  return new AsyncIteratorUtilChain(inIT);
+export const createAsyncIteratorUtilChain = <T>(
+  iteratorOrIterable: AsyncIterator<T> | AsyncIterableIterator<T>
+) => {
+  return new AsyncIteratorUtilChain(iteratorOrIterable);
 };

@@ -2,7 +2,10 @@
 
 import { GraphQLResolveInfo } from "graphql";
 import { ArgsDictionary, ResolverData } from "type-graphql";
-import { chronologicallyCombineAsyncIterators } from "../../iterators";
+import {
+  chronologicallyCombineAsyncIterators,
+  createAsyncIteratorUtilChain
+} from "../../iterators";
 
 export type SubscriptionUpdateData<T> = T extends Array<infer U> ? U : T;
 
@@ -25,16 +28,14 @@ export abstract class SubscribtionWithInitDataService<INIT_DATA, CONTEXT extends
     const liveUpdatesAI = this.getLiveUpdatesStream(resolverData);
 
     return chronologicallyCombineAsyncIterators<INIT_DATA | SubscriptionUpdateData<INIT_DATA>>([
-      initDataAI,
-      liveUpdatesAI
+      createAsyncIteratorUtilChain(initDataAI).finish(),
+      createAsyncIteratorUtilChain(liveUpdatesAI).finish()
     ]);
   }
 
-  protected abstract getInitData(
-    resolverData: ResolverData<CONTEXT>
-  ): AsyncIterableIterator<INIT_DATA>;
+  protected abstract getInitData(resolverData: ResolverData<CONTEXT>): AsyncIterator<INIT_DATA>;
 
   protected abstract getLiveUpdatesStream(
     resolverData: ResolverData<CONTEXT>
-  ): AsyncIterableIterator<SubscriptionUpdateData<INIT_DATA>>;
+  ): AsyncIterator<SubscriptionUpdateData<INIT_DATA>>;
 }

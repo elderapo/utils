@@ -1,13 +1,28 @@
+import { isAsyncIterable } from "iterall";
 import { SyncOrAsync } from "../../types";
 
 export type FilterFN<T> = (item: T) => SyncOrAsync<boolean>;
 export type MapFN<FROM, TO> = (item: FROM) => SyncOrAsync<TO>;
 
 export class AsyncIteratorUtilChain<T> {
-  constructor(private iterator: AsyncIterableIterator<T>) {}
+  private iterable: AsyncIterableIterator<T>;
+
+  constructor(iteratorOrIterable: AsyncIterator<T> | AsyncIterableIterator<T>) {
+    if (isAsyncIterable(iteratorOrIterable)) {
+      this.iterable = iteratorOrIterable;
+      return;
+    }
+
+    this.iterable = {
+      [Symbol.asyncIterator]: () => this.iterable,
+      next: iteratorOrIterable.next.bind(iteratorOrIterable),
+      return: iteratorOrIterable.return && iteratorOrIterable.return.bind(iteratorOrIterable),
+      throw: iteratorOrIterable.throw && iteratorOrIterable.throw.bind(iteratorOrIterable)
+    };
+  }
 
   public filter(filterFN: FilterFN<T>): AsyncIteratorUtilChain<T> {
-    const { iterator } = this;
+    const { iterable: iterator } = this;
 
     const createAI = async function*() {
       for await (const item of iterator) {
@@ -21,7 +36,7 @@ export class AsyncIteratorUtilChain<T> {
   }
 
   public map<TO>(mapFN: MapFN<T, TO>): AsyncIteratorUtilChain<TO> {
-    const { iterator } = this;
+    const { iterable: iterator } = this;
 
     const createAI = async function*() {
       for await (const item of iterator) {
@@ -33,6 +48,6 @@ export class AsyncIteratorUtilChain<T> {
   }
 
   public finish(): AsyncIterableIterator<T> {
-    return this.iterator;
+    return this.iterable;
   }
 }

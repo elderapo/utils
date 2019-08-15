@@ -28,15 +28,7 @@ describe("queuedOperation", () => {
     const results = await Promise.all([instance.someMethod1(), instance.someMethod2()]);
     const after = Date.now();
 
-    expect(results).toMatchInlineSnapshot(
-      [0, 1],
-      `
-            Object {
-              "0": 0,
-              "1": 1,
-            }
-        `
-    );
+    expect(results).toMatchObject([0, 1]);
     expect(after - before).toBeLessThanOrEqual(300);
   });
 
@@ -77,17 +69,8 @@ describe("queuedOperation", () => {
     ]);
     const after = Date.now();
 
-    expect(results).toMatchInlineSnapshot(
-      [0, 1, 2],
-      `
-      Object {
-        "0": 0,
-        "1": 1,
-        "2": 2,
-      }
-    `
-    );
-    expect(after - before).toBeGreaterThan(600);
+    expect(results).toMatchObject([0, 1, 2]);
+    expect(after - before).toBeGreaterThanOrEqual(600);
   });
 
   it("100 calls 10ms each take little bit more than 1 second", async () => {
@@ -114,7 +97,7 @@ describe("queuedOperation", () => {
     const after = Date.now();
 
     expect(results).toMatchSnapshot();
-    expect(after - before).toBeGreaterThan(100 * 10);
+    expect(after - before).toBeGreaterThanOrEqual(100 * 10);
   });
 
   it("ensures that next call is started after previous is done (with waitImmediate delays)", async () => {

@@ -70,7 +70,7 @@ describe("queuedOperation", () => {
     const after = Date.now();
 
     expect(results).toMatchObject([0, 1, 2]);
-    expect(after - before).toBeGreaterThan(600);
+    expect(after - before).toBeGreaterThanOrEqual(600);
   });
 
   it("100 calls 10ms each take little bit more than 1 second", async () => {
@@ -97,7 +97,7 @@ describe("queuedOperation", () => {
     const after = Date.now();
 
     expect(results).toMatchSnapshot();
-    expect(after - before).toBeGreaterThan(100 * 10);
+    expect(after - before).toBeGreaterThanOrEqual(100 * 10);
   });
 
   it("ensures that next call is started after previous is done (with waitImmediate delays)", async () => {

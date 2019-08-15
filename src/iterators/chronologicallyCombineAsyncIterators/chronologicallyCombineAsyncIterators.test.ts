@@ -115,7 +115,7 @@ describe("chronologicallyCombineAsyncIterators", () => {
     );
 
     const updateAI = createTestAsyncIterator(
-      [{ value: 3, delay: 10 }, { value: 4, delay: 10 }, { value: 5, delay: 10 }],
+      [{ value: 3, delay: 5 }, { value: 4, delay: 50 }, { value: 5, delay: 10 }],
       yieldedValuesRef
     );
 

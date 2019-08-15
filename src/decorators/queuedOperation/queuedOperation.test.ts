@@ -28,15 +28,7 @@ describe("queuedOperation", () => {
     const results = await Promise.all([instance.someMethod1(), instance.someMethod2()]);
     const after = Date.now();
 
-    expect(results).toMatchInlineSnapshot(
-      [0, 1],
-      `
-            Object {
-              "0": 0,
-              "1": 1,
-            }
-        `
-    );
+    expect(results).toMatchObject([0, 1]);
     expect(after - before).toBeLessThanOrEqual(300);
   });
 
@@ -77,16 +69,7 @@ describe("queuedOperation", () => {
     ]);
     const after = Date.now();
 
-    expect(results).toMatchInlineSnapshot(
-      [0, 1, 2],
-      `
-      Object {
-        "0": 0,
-        "1": 1,
-        "2": 2,
-      }
-    `
-    );
+    expect(results).toMatchObject([0, 1, 2]);
     expect(after - before).toBeGreaterThan(600);
   });
 

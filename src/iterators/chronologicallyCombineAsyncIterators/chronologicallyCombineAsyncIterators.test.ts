@@ -88,12 +88,12 @@ describe("chronologicallyCombineAsyncIterators", () => {
     const yieldedValuesRef: number[] = [];
 
     const initAI = createTestAsyncIterator(
-      [{ value: 1, delay: 15 }, { value: 2, delay: 5 }],
+      [{ value: 1, delay: 20 }, { value: 2, delay: 5 }],
       yieldedValuesRef
     );
 
     const updateAI = createTestAsyncIterator(
-      [{ value: 3, delay: 10 }, { value: 4, delay: 20 }, { value: 5, delay: 20 }],
+      [{ value: 3, delay: 5 }, { value: 4, delay: 80 }, { value: 5, delay: 20 }],
       yieldedValuesRef
     );
 

@@ -138,11 +138,6 @@
     lodash "^4.17.11"
     to-fast-properties "^2.0.0"
 
-"@channel/channel@^1.0.0":
-  version "1.0.0"
-  resolved "https://registry.yarnpkg.com/@channel/channel/-/channel-1.0.0.tgz#f6962d568b0da222690610a30ab745a7991e7cd7"
-  integrity sha512-FlKrECaN/2ZMTQvWc8vmRTZ2yJAPpE6TpPYep20dQfPtYAAPgI/PkfsKfEEWSzAJZLshuUlMWPQbCfEhsXfnSg==
-
 "@cnakazawa/watch@^1.0.3":
   version "1.0.3"
   resolved "https://registry.yarnpkg.com/@cnakazawa/watch/-/watch-1.0.3.tgz#099139eaec7ebf07a27c1786a3ff64f39464d2ef"

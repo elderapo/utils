@@ -64,6 +64,7 @@ describe("SerializableGroup", () => {
     const classAInstance1 = new ClassA({ a: "aaa" });
 
     expect(classAInstance1).toBeInstanceOf(SomeBaseClass);
+    expect(classAInstance1).toBeInstanceOf(ClassA);
     expect(classAInstance1).toMatchSnapshot();
 
     const classAInstance1Serialized = sg.serialize(classAInstance1);
@@ -73,6 +74,7 @@ describe("SerializableGroup", () => {
     const classAInstance1Deserialized = sg.deserialize(classAInstance1Serialized);
 
     expect(classAInstance1Deserialized).toBeInstanceOf(SomeBaseClass);
+    expect(classAInstance1Deserialized).toBeInstanceOf(ClassA);
     expect(classAInstance1Deserialized).toMatchSnapshot();
 
     expect(typeof classAInstance1Deserialized.getSomething).toBe("function");
@@ -101,6 +103,7 @@ describe("SerializableGroup", () => {
 
     expect(classAInstance1).toBeInstanceOf(Error);
     expect(classAInstance1).toBeInstanceOf(CustomError);
+    expect(classAInstance1).toBeInstanceOf(ClassA);
     expect(classAInstance1).toMatchSnapshot();
 
     const classAInstance1Serialized = sg.serialize(classAInstance1);
@@ -110,7 +113,8 @@ describe("SerializableGroup", () => {
     const classAInstance1Deserialized = sg.deserialize(classAInstance1Serialized);
 
     expect(classAInstance1Deserialized).toBeInstanceOf(Error);
-    expect(classAInstance1).toBeInstanceOf(CustomError);
+    expect(classAInstance1Deserialized).toBeInstanceOf(CustomError);
+    expect(classAInstance1Deserialized).toBeInstanceOf(ClassA);
     expect(classAInstance1Deserialized).toMatchSnapshot();
 
     expect(typeof classAInstance1Deserialized.message).toBe("string");

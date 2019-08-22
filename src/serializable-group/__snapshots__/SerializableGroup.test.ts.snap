@@ -1,0 +1,76 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`SerializableGroup should work correctly with CustomError as BaseClass 1`] = `[MyError<CLASS_A>]`;
+
+exports[`SerializableGroup should work correctly with CustomError as BaseClass 2`] = `
+Object {
+  "___typename___": "MyError",
+  "id": "CLASS_A",
+  "message": "",
+  "payload": Object {
+    "a": "aaa",
+  },
+}
+`;
+
+exports[`SerializableGroup should work correctly with CustomError as BaseClass 3`] = `[MyError<CLASS_A>]`;
+
+exports[`SerializableGroup should work correctly with Object as BaseClass (not provided) 1`] = `
+Sample<CLASS_A> {
+  "___typename___": "Sample",
+  "id": "CLASS_A",
+  "payload": Object {
+    "a": "aaa",
+  },
+}
+`;
+
+exports[`SerializableGroup should work correctly with Object as BaseClass (not provided) 2`] = `
+Object {
+  "___typename___": "Sample",
+  "id": "CLASS_A",
+  "payload": Object {
+    "a": "aaa",
+  },
+}
+`;
+
+exports[`SerializableGroup should work correctly with Object as BaseClass (not provided) 3`] = `
+Sample<CLASS_A> {
+  "___typename___": "Sample",
+  "id": "CLASS_A",
+  "payload": Object {
+    "a": "aaa",
+  },
+}
+`;
+
+exports[`SerializableGroup should work correctly with SomeBaseClass as BaseClass 1`] = `
+Sample<CLASS_A> {
+  "___typename___": "Sample",
+  "id": "CLASS_A",
+  "payload": Object {
+    "a": "aaa",
+  },
+}
+`;
+
+exports[`SerializableGroup should work correctly with SomeBaseClass as BaseClass 2`] = `
+Object {
+  "___typename___": "Sample",
+  "id": "CLASS_A",
+  "payload": Object {
+    "a": "aaa",
+  },
+}
+`;
+
+exports[`SerializableGroup should work correctly with SomeBaseClass as BaseClass 3`] = `
+Sample<CLASS_A> {
+  "___typename___": "Sample",
+  "id": "CLASS_A",
+  "payload": Object {
+    "a": "aaa",
+  },
+}
+`;

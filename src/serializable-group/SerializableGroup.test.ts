@@ -24,41 +24,17 @@ describe("SerializableGroup", () => {
 
     expect(classAInstance1).toBeInstanceOf(Object);
     expect(classAInstance1).toBeInstanceOf(ClassA);
-    expect(classAInstance1).toMatchInlineSnapshot(`
-      Sample<CLASS_A> {
-        "___typename___": "Sample",
-        "id": "CLASS_A",
-        "payload": Object {
-          "a": "aaa",
-        },
-      }
-    `);
+    expect(classAInstance1).toMatchSnapshot();
 
     const classAInstance1Serialized = sg.serialize(classAInstance1);
 
-    expect(classAInstance1Serialized).toMatchInlineSnapshot(`
-      Object {
-        "___typename___": "Sample",
-        "id": "CLASS_A",
-        "payload": Object {
-          "a": "aaa",
-        },
-      }
-    `);
+    expect(classAInstance1Serialized).toMatchSnapshot();
 
     const classAInstance1Deserialized = sg.deserialize(classAInstance1Serialized);
 
     expect(classAInstance1Deserialized).toBeInstanceOf(Object);
     expect(classAInstance1Deserialized).toBeInstanceOf(ClassA);
-    expect(classAInstance1Deserialized).toMatchInlineSnapshot(`
-      Sample<CLASS_A> {
-        "___typename___": "Sample",
-        "id": "CLASS_A",
-        "payload": Object {
-          "a": "aaa",
-        },
-      }
-    `);
+    expect(classAInstance1Deserialized).toMatchSnapshot();
   });
 
   it("should work correctly with SomeBaseClass as BaseClass", () => {
@@ -88,40 +64,16 @@ describe("SerializableGroup", () => {
     const classAInstance1 = new ClassA({ a: "aaa" });
 
     expect(classAInstance1).toBeInstanceOf(SomeBaseClass);
-    expect(classAInstance1).toMatchInlineSnapshot(`
-                                    Sample<CLASS_A> {
-                                      "___typename___": "Sample",
-                                      "id": "CLASS_A",
-                                      "payload": Object {
-                                        "a": "aaa",
-                                      },
-                                    }
-                        `);
+    expect(classAInstance1).toMatchSnapshot();
 
     const classAInstance1Serialized = sg.serialize(classAInstance1);
 
-    expect(classAInstance1Serialized).toMatchInlineSnapshot(`
-                                    Object {
-                                      "___typename___": "Sample",
-                                      "id": "CLASS_A",
-                                      "payload": Object {
-                                        "a": "aaa",
-                                      },
-                                    }
-                        `);
+    expect(classAInstance1Serialized).toMatchSnapshot();
 
     const classAInstance1Deserialized = sg.deserialize(classAInstance1Serialized);
 
     expect(classAInstance1Deserialized).toBeInstanceOf(SomeBaseClass);
-    expect(classAInstance1Deserialized).toMatchInlineSnapshot(`
-                                    Sample<CLASS_A> {
-                                      "___typename___": "Sample",
-                                      "id": "CLASS_A",
-                                      "payload": Object {
-                                        "a": "aaa",
-                                      },
-                                    }
-                        `);
+    expect(classAInstance1Deserialized).toMatchSnapshot();
 
     expect(typeof classAInstance1Deserialized.getSomething).toBe("function");
     expect(classAInstance1Deserialized.getSomething()).toBe("something");
@@ -149,26 +101,17 @@ describe("SerializableGroup", () => {
 
     expect(classAInstance1).toBeInstanceOf(Error);
     expect(classAInstance1).toBeInstanceOf(CustomError);
-    expect(classAInstance1).toMatchInlineSnapshot(`[MyError<CLASS_A>]`);
+    expect(classAInstance1).toMatchSnapshot();
 
     const classAInstance1Serialized = sg.serialize(classAInstance1);
 
-    expect(classAInstance1Serialized).toMatchInlineSnapshot(`
-            Object {
-              "___typename___": "MyError",
-              "id": "CLASS_A",
-              "message": "",
-              "payload": Object {
-                "a": "aaa",
-              },
-            }
-        `);
+    expect(classAInstance1Serialized).toMatchSnapshot();
 
     const classAInstance1Deserialized = sg.deserialize(classAInstance1Serialized);
 
     expect(classAInstance1Deserialized).toBeInstanceOf(Error);
     expect(classAInstance1).toBeInstanceOf(CustomError);
-    expect(classAInstance1Deserialized).toMatchInlineSnapshot(`[MyError<CLASS_A>]`);
+    expect(classAInstance1Deserialized).toMatchSnapshot();
 
     expect(typeof classAInstance1Deserialized.message).toBe("string");
   });

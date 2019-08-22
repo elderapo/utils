@@ -6,7 +6,7 @@ export interface ISerializableGroupOptions<TYPENAME, BASE_CLASS_SHAPE> {
   BaseClass?: BASE_CLASS_SHAPE;
 }
 
-export class DefaultBaseClass {}
+export class DefaultBaseClass {} // @TEMP: https://github.com/microsoft/TypeScript/issues/33023
 
 export class SerializableGroup<PAYLOADS, TYPENAME extends string, BASE_CLASS_SHAPE = Object> {
   private cache = new Map();

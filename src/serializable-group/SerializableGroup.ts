@@ -6,6 +6,8 @@ export interface ISerializableGroupOptions<TYPENAME, BASE_CLASS_SHAPE> {
   BaseClass?: BASE_CLASS_SHAPE;
 }
 
+export class DefaultBaseClass {}
+
 export class SerializableGroup<PAYLOADS, TYPENAME extends string, BASE_CLASS_SHAPE = Object> {
   private cache = new Map();
 
@@ -15,7 +17,7 @@ export class SerializableGroup<PAYLOADS, TYPENAME extends string, BASE_CLASS_SHA
 
   public createClassConstructor<ID extends keyof PAYLOADS, PAYLOAD = PAYLOADS[ID]>(id: ID) {
     const typename = this.options.typename;
-    const BaseClass = (this.options.BaseClass || Object) as Constructable<Object>;
+    const BaseClass = (this.options.BaseClass || DefaultBaseClass) as Constructable<Object>;
 
     const Class = class extends BaseClass {
       public readonly id: ID;

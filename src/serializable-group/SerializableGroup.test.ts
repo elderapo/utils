@@ -23,40 +23,42 @@ describe("SerializableGroup", () => {
     const classAInstance1 = new ClassA({ a: "aaa" });
 
     expect(classAInstance1).toBeInstanceOf(Object);
+    expect(classAInstance1).toBeInstanceOf(ClassA);
     expect(classAInstance1).toMatchInlineSnapshot(`
-                                          Object {
-                                            "___typename___": "Sample",
-                                            "id": "CLASS_A",
-                                            "payload": Object {
-                                              "a": "aaa",
-                                            },
-                                          }
-                            `);
+      Sample<CLASS_A> {
+        "___typename___": "Sample",
+        "id": "CLASS_A",
+        "payload": Object {
+          "a": "aaa",
+        },
+      }
+    `);
 
     const classAInstance1Serialized = sg.serialize(classAInstance1);
 
     expect(classAInstance1Serialized).toMatchInlineSnapshot(`
-                                    Object {
-                                      "___typename___": "Sample",
-                                      "id": "CLASS_A",
-                                      "payload": Object {
-                                        "a": "aaa",
-                                      },
-                                    }
-                        `);
+      Object {
+        "___typename___": "Sample",
+        "id": "CLASS_A",
+        "payload": Object {
+          "a": "aaa",
+        },
+      }
+    `);
 
     const classAInstance1Deserialized = sg.deserialize(classAInstance1Serialized);
 
     expect(classAInstance1Deserialized).toBeInstanceOf(Object);
+    expect(classAInstance1Deserialized).toBeInstanceOf(ClassA);
     expect(classAInstance1Deserialized).toMatchInlineSnapshot(`
-                                          Object {
-                                            "___typename___": "Sample",
-                                            "id": "CLASS_A",
-                                            "payload": Object {
-                                              "a": "aaa",
-                                            },
-                                          }
-                            `);
+      Sample<CLASS_A> {
+        "___typename___": "Sample",
+        "id": "CLASS_A",
+        "payload": Object {
+          "a": "aaa",
+        },
+      }
+    `);
   });
 
   it("should work correctly with SomeBaseClass as BaseClass", () => {
@@ -87,39 +89,39 @@ describe("SerializableGroup", () => {
 
     expect(classAInstance1).toBeInstanceOf(SomeBaseClass);
     expect(classAInstance1).toMatchInlineSnapshot(`
-                              Sample<CLASS_A> {
-                                "___typename___": "Sample",
-                                "id": "CLASS_A",
-                                "payload": Object {
-                                  "a": "aaa",
-                                },
-                              }
-                    `);
+                                    Sample<CLASS_A> {
+                                      "___typename___": "Sample",
+                                      "id": "CLASS_A",
+                                      "payload": Object {
+                                        "a": "aaa",
+                                      },
+                                    }
+                        `);
 
     const classAInstance1Serialized = sg.serialize(classAInstance1);
 
     expect(classAInstance1Serialized).toMatchInlineSnapshot(`
-                              Object {
-                                "___typename___": "Sample",
-                                "id": "CLASS_A",
-                                "payload": Object {
-                                  "a": "aaa",
-                                },
-                              }
-                    `);
+                                    Object {
+                                      "___typename___": "Sample",
+                                      "id": "CLASS_A",
+                                      "payload": Object {
+                                        "a": "aaa",
+                                      },
+                                    }
+                        `);
 
     const classAInstance1Deserialized = sg.deserialize(classAInstance1Serialized);
 
     expect(classAInstance1Deserialized).toBeInstanceOf(SomeBaseClass);
     expect(classAInstance1Deserialized).toMatchInlineSnapshot(`
-                              Sample<CLASS_A> {
-                                "___typename___": "Sample",
-                                "id": "CLASS_A",
-                                "payload": Object {
-                                  "a": "aaa",
-                                },
-                              }
-                    `);
+                                    Sample<CLASS_A> {
+                                      "___typename___": "Sample",
+                                      "id": "CLASS_A",
+                                      "payload": Object {
+                                        "a": "aaa",
+                                      },
+                                    }
+                        `);
 
     expect(typeof classAInstance1Deserialized.getSomething).toBe("function");
     expect(classAInstance1Deserialized.getSomething()).toBe("something");
@@ -152,15 +154,15 @@ describe("SerializableGroup", () => {
     const classAInstance1Serialized = sg.serialize(classAInstance1);
 
     expect(classAInstance1Serialized).toMatchInlineSnapshot(`
-      Object {
-        "___typename___": "MyError",
-        "id": "CLASS_A",
-        "message": "",
-        "payload": Object {
-          "a": "aaa",
-        },
-      }
-    `);
+            Object {
+              "___typename___": "MyError",
+              "id": "CLASS_A",
+              "message": "",
+              "payload": Object {
+                "a": "aaa",
+              },
+            }
+        `);
 
     const classAInstance1Deserialized = sg.deserialize(classAInstance1Serialized);
 

@@ -67,7 +67,8 @@
       "/test/",
       "/test-utils/",
       "isomorphic",
-      "index.ts"
+      "index.ts",
+      "frontend-stuff"
     ],
     "coverageThreshold": {
       "global": {

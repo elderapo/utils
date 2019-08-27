@@ -1,5 +1,6 @@
 export * from "./cryptocurrency";
 export * from "./decorators";
+export * from "./frontend-stuff";
 export * from "./graphql";
 export * from "./iterators";
 export * from "./number-utils";

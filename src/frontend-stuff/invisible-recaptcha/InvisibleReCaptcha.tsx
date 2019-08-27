@@ -1,19 +1,10 @@
 import { Deferred } from "ts-deferred";
-import { sleep } from "../timers";
+import { sleep } from "../../timers";
+import { SyncOrAsync } from "../../types";
 
 let apiKey: string | null = null;
 let captchaContainer: HTMLDivElement | null = null;
-
-export const initInvisibleReCaptcha = (_apiKey: string): void => {
-  apiKey = _apiKey;
-
-  if (!captchaContainer) {
-    captchaContainer = document.createElement("div");
-    captchaContainer.style.zIndex = "99999";
-    captchaContainer.style.position = "absolute";
-    document.body.appendChild(captchaContainer);
-  }
-};
+let fakeGetTokenFN: (() => SyncOrAsync<string>) | null = null;
 
 export class InvisibleReCaptcha {
   private container: HTMLDivElement;
@@ -73,6 +64,10 @@ export class InvisibleReCaptcha {
   }
 
   public async getToken(): Promise<string> {
+    if (fakeGetTokenFN) {
+      return fakeGetTokenFN();
+    }
+
     const grecaptcha = await this.getGrecaptcha();
 
     if (this.getTokenDeferred) {
@@ -92,6 +87,20 @@ export class InvisibleReCaptcha {
       throw ex;
     } finally {
       this.getTokenDeferred = null;
+    }
+  }
+
+  public static init(_apiKey: string, _fakeGetTokenFN?: () => SyncOrAsync<string>): void {
+    apiKey = _apiKey;
+    if (_fakeGetTokenFN) {
+      fakeGetTokenFN = _fakeGetTokenFN;
+    }
+
+    if (!captchaContainer) {
+      captchaContainer = document.createElement("div");
+      captchaContainer.style.zIndex = "99999";
+      captchaContainer.style.position = "absolute";
+      document.body.appendChild(captchaContainer);
     }
   }
 }

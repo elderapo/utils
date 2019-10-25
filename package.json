@@ -104,7 +104,6 @@
     "jest": "^24.0.0",
     "jest-config": "^24.0.0",
     "lint-staged": "^8.0.0",
-    "lodash.camelcase": "^4.3.0",
     "prettier": "^1.14.3",
     "prompt": "^1.0.0",
     "replace-in-file": "^4.0.0",
@@ -134,21 +133,9 @@
     "test": "test"
   },
   "dependencies": {
-    "@types/lodash": "^4.14.136",
     "@types/mathjs": "^6.0.1",
-    "@types/react": "^16.9.2",
-    "@types/styled-components": "4.1.8",
     "crypto-browserify": "^3.12.0",
-    "decko": "^1.2.0",
-    "iterall": "^1.2.2",
-    "lodash": "^4.17.15",
-    "mathjs": "^6.0.4",
-    "ts-custom-error": "^3.1.1",
-    "ts-deferred": "^1.0.4"
-  },
-  "peerDependencies": {
-    "react": "^16.9.0",
-    "styled-components": "^4.3.2",
-    "type-graphql": "^0.17.4"
+    "mathjs": "^6.2.3",
+    "ts-custom-error": "^3.1.1"
   }
 }

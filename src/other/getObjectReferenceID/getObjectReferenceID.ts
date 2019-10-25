@@ -1,4 +1,3 @@
-import { get } from "lodash";
 import { ObjectReference } from "./ObjectReference";
 
 let cache = new WeakMap<Object, ObjectReference>();
@@ -33,7 +32,7 @@ export const resetObjectReferenceIDCache = () => {
 };
 
 const getObjectPrototypeName = (obj: Object): string => {
-  return get(obj, "constructor.name") || "RawObject";
+  return obj && obj.constructor && obj.constructor.name ? obj.constructor.name : "RawObject";
 };
 
 const getNextGlobalObjectId = (): number => {

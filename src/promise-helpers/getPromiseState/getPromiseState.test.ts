@@ -4,7 +4,7 @@ import {
   isPromiseResolved,
   getPromiseState
 } from "./getPromiseState";
-import { noop } from "../noop";
+import { noop } from "../../other/noop";
 import { PromiseState } from "./PromiseState";
 
 describe("getPromiseState", () => {

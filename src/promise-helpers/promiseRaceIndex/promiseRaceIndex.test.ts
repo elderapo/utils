@@ -3,8 +3,6 @@ import { waitImmediate } from "../../timers";
 import { promiseRaceIndex } from "./promiseRaceIndex";
 
 describe("promiseRaceIndex", () => {
-  /* tslint:disable:no-floating-promises */
-
   it("should resolve", async () => {
     await expect(
       promiseRaceIndex([
@@ -70,6 +68,4 @@ describe("promiseRaceIndex", () => {
       ])
     ).rejects.toThrowError("ID_2");
   });
-
-  /* tslint:enable:no-floating-promises */
 });

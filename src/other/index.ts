@@ -1,3 +1,4 @@
+export * from "./dependency-path";
 export * from "./getObjectReferenceID";
 export * from "./isValidEnum";
 export * from "./isomorphic";

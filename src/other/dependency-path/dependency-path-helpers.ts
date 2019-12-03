@@ -20,14 +20,27 @@ export const getNamespacesList = (instance: Object): INamespaceItem[] => {
   return dependencyPath["getNamespacesList"]();
 };
 
-export const registerDependencyPath = <T extends ClassType>(constr: T) => {
+export interface IRegisterDependencyPathOptions {
+  afterInstanceCreation?: (target: any, dependencyPath: DependencyPath) => void;
+}
+
+export const registerDependencyPath = (options: IRegisterDependencyPathOptions = {}) => <
+  T extends ClassType
+>(
+  constr: T
+) => {
   const Class = class extends constr {
     constructor(...args: any[]) {
       super(...args);
 
       const instance = (this as unknown) as IInstanceWithDependencyPath;
 
-      instance[DEPENDENCY_PATH_SYMBOL] = new DependencyPath(instance);
+      const dependencyPath = new DependencyPath(instance);
+      instance[DEPENDENCY_PATH_SYMBOL] = dependencyPath;
+
+      if (options.afterInstanceCreation) {
+        options.afterInstanceCreation(instance, dependencyPath);
+      }
     }
   };
 

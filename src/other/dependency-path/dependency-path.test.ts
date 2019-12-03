@@ -3,7 +3,7 @@ import { registerDependencyPath, getNamespacesList } from "./dependency-path-hel
 describe("dependency-path", () => {
   describe("registerDependencyPath", () => {
     it("should work without any children dependencies", () => {
-      @registerDependencyPath
+      @registerDependencyPath()
       class A {}
 
       const a = new A();
@@ -12,10 +12,10 @@ describe("dependency-path", () => {
     });
 
     it("should work with single child dependency", () => {
-      @registerDependencyPath
+      @registerDependencyPath()
       class B {}
 
-      @registerDependencyPath
+      @registerDependencyPath()
       class A {
         public b = new B();
       }
@@ -39,12 +39,12 @@ describe("dependency-path", () => {
       let nextD_ID = 0;
       // tslint:enable:variable-name
 
-      @registerDependencyPath
+      @registerDependencyPath()
       class D {
         private id = nextD_ID++;
       }
 
-      @registerDependencyPath
+      @registerDependencyPath()
       class C {
         private id = nextC_ID++;
         public d1 = new D();
@@ -52,13 +52,13 @@ describe("dependency-path", () => {
         public d3 = new D();
       }
 
-      @registerDependencyPath
+      @registerDependencyPath()
       class B {
         private id = nextB_ID++;
         public c = new C();
       }
 
-      @registerDependencyPath
+      @registerDependencyPath()
       class A {
         private id = nextA_ID++;
         public b1 = new B();

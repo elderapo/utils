@@ -5,13 +5,18 @@ import {
   ILogger,
   setNamespaceName,
   FileLoggerTransport
-} from "./other";
+} from "..";
+import { sleep } from "../../timers";
+import * as path from "path";
 
 export const main = async () => {
   const { injectScopedLoger } = createScopedLogger({
     transports: [
       new ConsoleLoggerTransport(),
-      new FileLoggerTransport({}) // tmp
+      new FileLoggerTransport({
+        directory: path.join(__dirname, "..", "logs"),
+        deleteFilesOlderThan: 1000 * 60
+      })
     ]
   });
 
@@ -94,11 +99,15 @@ export const main = async () => {
     }
   }
 
-  await new TaskA().work();
+  while (true) {
+    await new TaskA().work();
 
-  await new TaskB().work();
+    await new TaskB().work();
 
-  await new TaskC().work();
+    await new TaskC().work();
+
+    await sleep(100);
+  }
 };
 
 main().catch(console.error);

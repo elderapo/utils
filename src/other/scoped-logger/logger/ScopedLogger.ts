@@ -40,7 +40,7 @@ export class ScopedLoger {
     return args;
   }
 
-  public injectScopedLoggerDecorator = <T extends ClassType>(cstr: T) => {
+  public injectScopedLoggerDecorator = (cstr: any) => {
     return registerDependencyPath({
       onInstanceCreation: target => {
         const localLogger = new InjectableLogger({

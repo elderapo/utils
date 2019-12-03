@@ -44,13 +44,13 @@ export class DependencyPath {
   private findChildren(scope: Object) {
     return Object.entries(scope)
       .map(([key, value]) => value)
-      .filter(value => typeof value === "object")
+      .filter(value => typeof value === "object" && !!value)
       .filter(inst => inst[DEPENDENCY_PATH_SYMBOL]);
   }
 
   private nest(parent: IInstanceWithDependencyPath) {
     this.children.forEach(child => {
-      if (child[DEPENDENCY_PATH_SYMBOL]) {
+      if (child && child[DEPENDENCY_PATH_SYMBOL]) {
         child[DEPENDENCY_PATH_SYMBOL].parents = [...this.parents, this.scope];
         child[DEPENDENCY_PATH_SYMBOL].nest(parent);
       }

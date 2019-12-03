@@ -26,7 +26,23 @@ describe("dependency-path", () => {
     it("should work without any children dependencies", () => {
       @registerDependencyPath()
       class A {
-        public static someStatic: number = 123;
+        public static p1: number = 123;
+        public static p2 = null;
+        public static p3 = "asdasd";
+        public static p4 = false;
+        public static p5 = Symbol();
+        public static p6 = new Array();
+        public static p7 = {};
+        public static p8 = undefined;
+
+        public p1: number = 123;
+        public p2 = null;
+        public p3 = "asdasd";
+        public p4 = false;
+        public p5 = Symbol();
+        public p6 = new Array();
+        public p7 = {};
+        public p8 = undefined;
       }
 
       const a = new A();

@@ -1,4 +1,8 @@
-import { registerDependencyPath, getNamespacesList } from "./dependency-path-helpers";
+import {
+  registerDependencyPath,
+  getNamespacesList,
+  setNamespaceName
+} from "./dependency-path-helpers";
 
 describe("dependency-path", () => {
   describe("registerDependencyPath", () => {
@@ -133,6 +137,53 @@ describe("dependency-path", () => {
         { id: 1, namespace: "C" },
         { id: 5, namespace: "D" }
       ]);
+    });
+
+    it("should call registerDependencyPath::afterInstanceCreation if specified", () => {
+      const afterInstanceCreation = jest.fn();
+
+      @registerDependencyPath({
+        afterInstanceCreation
+      })
+      class A {
+        public static someStatic: number = 123;
+      }
+
+      const a = new A();
+
+      expect(getNamespacesList(a)).toMatchObject([{ id: null, namespace: "A" }]);
+      expect(afterInstanceCreation).toHaveBeenCalled();
+    });
+  });
+
+  describe("setNamespaceName", () => {
+    it("should use overridden namespace name instead of class name", () => {
+      // tslint:disable:variable-name
+      let nextB_ID = 0;
+      // tslint:enable:variable-name
+
+      @setNamespaceName("B-namespace")
+      @registerDependencyPath()
+      class B {
+        private id = nextB_ID++;
+        public static someStatic: number = 123;
+      }
+
+      @setNamespaceName("A-namespace")
+      @registerDependencyPath()
+      class A {
+        public b = new B();
+      }
+
+      const a = new A();
+      const b = new B();
+
+      expect(getNamespacesList(a)).toMatchObject([{ id: null, namespace: "A-namespace" }]);
+      expect(getNamespacesList(a.b)).toMatchObject([
+        { id: null, namespace: "A-namespace" },
+        { id: 0, namespace: "B-namespace" }
+      ]);
+      expect(getNamespacesList(b)).toMatchObject([{ id: 1, namespace: "B-namespace" }]);
     });
   });
 

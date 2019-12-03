@@ -1,4 +1,5 @@
 export * from "./ClassMethodNames";
+export * from "./ClassType";
 export * from "./Constructable";
 export * from "./DeepReadonly";
 export * from "./Nullable";

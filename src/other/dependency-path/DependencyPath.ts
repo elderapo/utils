@@ -15,8 +15,7 @@ export class DependencyPath {
   private children: IInstanceWithDependencyPath[] = [];
 
   public constructor(private scope: IInstanceWithDependencyPath) {
-    this.children = this.findChildren(scope);
-    this.nest(this.scope);
+    this.buildState(scope);
   }
 
   protected getNamespacesList(): INamespaceItem[] {
@@ -31,6 +30,15 @@ export class DependencyPath {
         namespace
       };
     });
+  }
+
+  protected buildState(scope: IInstanceWithDependencyPath): void {
+    this.children = this.findChildren(scope);
+    this.nest(this.scope);
+  }
+
+  protected rebuildState(): void {
+    this.buildState(this.scope);
   }
 
   private findChildren(scope: Object) {

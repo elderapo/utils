@@ -1,4 +1,3 @@
-import { ClassType } from "../../types";
 import {
   DependencyPath,
   DEPENDENCY_PATH_CUSTOM_NAME_SYMBOL,
@@ -22,25 +21,28 @@ export const getNamespacesList = (instance: Object): INamespaceItem[] => {
 };
 
 export interface IRegisterDependencyPathOptions {
-  afterInstanceCreation?: (target: any, dependencyPath: DependencyPath) => void;
+  onInstanceCreation?: (target: any, dependencyPath: DependencyPath) => void;
 }
 
-export const registerDependencyPath = (options: IRegisterDependencyPathOptions = {}) => <
-  T extends ClassType
->(
-  constr: T
-) => {
+export const registerDependencyPath = (options: IRegisterDependencyPathOptions = {}) => (
+  constr: any
+): any => {
   const Class = class extends constr {
     constructor(...args: any[]) {
       super(...args);
 
       const instance = (this as unknown) as IInstanceWithDependencyPath;
 
+      if (instance[DEPENDENCY_PATH_SYMBOL]) {
+        instance[DEPENDENCY_PATH_SYMBOL]["rebuildState"]();
+        return;
+      }
+
       const dependencyPath = new DependencyPath(instance);
       instance[DEPENDENCY_PATH_SYMBOL] = dependencyPath;
 
-      if (options.afterInstanceCreation) {
-        options.afterInstanceCreation(instance, dependencyPath);
+      if (options.onInstanceCreation) {
+        options.onInstanceCreation(instance, dependencyPath);
       }
     }
   };
@@ -51,7 +53,7 @@ export const registerDependencyPath = (options: IRegisterDependencyPathOptions =
   return Class;
 };
 
-export const setNamespaceName = (namespace: string) => <T extends ClassType>(constr: T) => {
-  (constr as any)[DEPENDENCY_PATH_CUSTOM_NAME_SYMBOL] = namespace;
+export const setNamespaceName = (namespace: string) => (constr: any) => {
+  constr[DEPENDENCY_PATH_CUSTOM_NAME_SYMBOL] = namespace;
   return constr;
 };

@@ -5,6 +5,23 @@ import {
 } from "./dependency-path-helpers";
 
 describe("dependency-path", () => {
+  const nextIds = new Map<string, number>();
+
+  const getNextId = (tag: string): number => {
+    if (!nextIds.has(tag)) {
+      nextIds.set(tag, 0);
+    }
+
+    const current = nextIds.get(tag)!;
+    nextIds.set(tag, current + 1);
+
+    return current;
+  };
+
+  beforeEach(() => {
+    nextIds.clear();
+  });
+
   describe("registerDependencyPath", () => {
     it("should work without any children dependencies", () => {
       @registerDependencyPath()
@@ -38,21 +55,14 @@ describe("dependency-path", () => {
     });
 
     it("should work with complicated children structure", () => {
-      // tslint:disable:variable-name
-      let nextA_ID = 0;
-      let nextB_ID = 0;
-      let nextC_ID = 0;
-      let nextD_ID = 0;
-      // tslint:enable:variable-name
-
       @registerDependencyPath()
       class D {
-        private id = nextD_ID++;
+        private id = getNextId("d");
       }
 
       @registerDependencyPath()
       class C {
-        private id = nextC_ID++;
+        private id = getNextId("c");
         public d1 = new D();
         public d2 = new D();
         public d3 = new D();
@@ -60,13 +70,13 @@ describe("dependency-path", () => {
 
       @registerDependencyPath()
       class B {
-        private id = nextB_ID++;
+        private id = getNextId("b");
         public c = new C();
       }
 
       @registerDependencyPath()
       class A {
-        private id = nextA_ID++;
+        private id = getNextId("a");
         public b1 = new B();
         public b2 = new B();
       }
@@ -139,11 +149,11 @@ describe("dependency-path", () => {
       ]);
     });
 
-    it("should call registerDependencyPath::afterInstanceCreation if specified", () => {
-      const afterInstanceCreation = jest.fn();
+    it("should call registerDependencyPath::onInstanceCreation if specified", () => {
+      const onInstanceCreation = jest.fn();
 
       @registerDependencyPath({
-        afterInstanceCreation
+        onInstanceCreation
       })
       class A {
         public static someStatic: number = 123;
@@ -152,20 +162,93 @@ describe("dependency-path", () => {
       const a = new A();
 
       expect(getNamespacesList(a)).toMatchObject([{ id: null, namespace: "A" }]);
-      expect(afterInstanceCreation).toHaveBeenCalled();
+      expect(onInstanceCreation).toHaveBeenCalled();
+    });
+
+    describe("inheritance", () => {
+      it("should work with simple example", () => {
+        @registerDependencyPath()
+        class B {}
+
+        @registerDependencyPath()
+        abstract class AParent {}
+
+        @registerDependencyPath()
+        class AChild extends AParent {
+          public b = new B();
+        }
+
+        const a = new AChild();
+
+        expect(getNamespacesList(a)).toMatchObject([{ id: null, namespace: "AChild" }]);
+        expect(getNamespacesList(a.b)).toMatchObject([
+          { id: null, namespace: "AChild" },
+          { id: null, namespace: "B" }
+        ]);
+      });
+
+      it("should work with namespaces", () => {
+        @setNamespaceName("B_NSP")
+        @registerDependencyPath()
+        class B {}
+
+        @setNamespaceName("AParent_NSP")
+        @registerDependencyPath()
+        abstract class AParent {}
+
+        @setNamespaceName("AChild_NSP")
+        @registerDependencyPath()
+        class AChild extends AParent {
+          public b = new B();
+        }
+
+        const a = new AChild();
+
+        expect(getNamespacesList(a)).toMatchObject([{ id: null, namespace: "AChild_NSP" }]);
+        expect(getNamespacesList(a.b)).toMatchObject([
+          { id: null, namespace: "AChild_NSP" },
+          { id: null, namespace: "B_NSP" }
+        ]);
+      });
+
+      it("should work with namespaces and ids", () => {
+        @setNamespaceName("B_NSP")
+        @registerDependencyPath()
+        class B {
+          private id = getNextId("b");
+        }
+
+        @setNamespaceName("AParent_NSP")
+        @registerDependencyPath()
+        abstract class AParent {
+          protected id = getNextId("aParent") + "_aParent";
+        }
+
+        @setNamespaceName("AChild_NSP")
+        @registerDependencyPath()
+        class AChild extends AParent {
+          protected id = getNextId("aChild") + "_aChild";
+
+          public b = new B();
+        }
+
+        const a = new AChild();
+
+        expect(getNamespacesList(a)).toMatchObject([{ id: "0_aChild", namespace: "AChild_NSP" }]);
+        expect(getNamespacesList(a.b)).toMatchObject([
+          { id: "0_aChild", namespace: "AChild_NSP" },
+          { id: 0, namespace: "B_NSP" }
+        ]);
+      });
     });
   });
 
   describe("setNamespaceName", () => {
     it("should use overridden namespace name instead of class name", () => {
-      // tslint:disable:variable-name
-      let nextB_ID = 0;
-      // tslint:enable:variable-name
-
       @setNamespaceName("B-namespace")
       @registerDependencyPath()
       class B {
-        private id = nextB_ID++;
+        private id = getNextId("b");
         public static someStatic: number = 123;
       }
 
@@ -184,6 +267,57 @@ describe("dependency-path", () => {
         { id: 0, namespace: "B-namespace" }
       ]);
       expect(getNamespacesList(b)).toMatchObject([{ id: 1, namespace: "B-namespace" }]);
+    });
+
+    it("should work with inheritance", () => {
+      @setNamespaceName("BaseClass-namespace")
+      @registerDependencyPath()
+      class BaseClass {}
+
+      @setNamespaceName("ChildClass-namespace")
+      @registerDependencyPath()
+      class ChildClass {
+        protected id = getNextId("ChildClass");
+      }
+
+      @setNamespaceName("Child1-namespace")
+      @registerDependencyPath()
+      class Child1 extends ChildClass {}
+
+      @setNamespaceName("Child2-namespace")
+      @registerDependencyPath()
+      class Child2 extends ChildClass {}
+
+      expect(getNamespacesList(new Child2())).toMatchObject([
+        {
+          id: 0,
+          namespace: "Child2-namespace"
+        }
+      ]);
+      expect(getNamespacesList(new Child1())).toMatchObject([
+        {
+          id: 1,
+          namespace: "Child1-namespace"
+        }
+      ]);
+      expect(getNamespacesList(new BaseClass())).toMatchObject([
+        {
+          id: null,
+          namespace: "BaseClass-namespace"
+        }
+      ]);
+      expect(getNamespacesList(new Child1())).toMatchObject([
+        {
+          id: 2,
+          namespace: "Child1-namespace"
+        }
+      ]);
+      expect(getNamespacesList(new Child2())).toMatchObject([
+        {
+          id: 3,
+          namespace: "Child2-namespace"
+        }
+      ]);
     });
   });
 

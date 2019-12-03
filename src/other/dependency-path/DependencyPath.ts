@@ -43,7 +43,8 @@ export class DependencyPath {
 
   private findChildren(scope: Object) {
     return Object.entries(scope)
-      .map(([key, value]) => value as IInstanceWithDependencyPath)
+      .map(([key, value]) => value)
+      .filter(value => typeof value === "object")
       .filter(inst => inst[DEPENDENCY_PATH_SYMBOL]);
   }
 

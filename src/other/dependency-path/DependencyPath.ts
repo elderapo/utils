@@ -4,6 +4,7 @@ export interface INamespaceItem {
 }
 
 export const DEPENDENCY_PATH_SYMBOL = Symbol("DEPENDENCY_PATH_SYMBOL");
+export const DEPENDENCY_PATH_CUSTOM_NAME_SYMBOL = Symbol("DEPENDENCY_PATH_CUSTOM_NAME_SYMBOL");
 
 export interface IInstanceWithDependencyPath {
   [DEPENDENCY_PATH_SYMBOL]: DependencyPath;
@@ -22,9 +23,12 @@ export class DependencyPath {
     return [...this.parents, this.scope].map(instance => {
       const casted = (instance as any) as { id: any };
 
+      const namespace =
+        (casted as any).constructor[DEPENDENCY_PATH_CUSTOM_NAME_SYMBOL] || casted.constructor.name;
+
       return {
         id: typeof casted.id !== "undefined" ? casted.id : null,
-        namespace: casted.constructor.name
+        namespace
       };
     });
   }

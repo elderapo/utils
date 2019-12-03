@@ -1,6 +1,7 @@
 import { ClassType } from "../../types";
 import {
   DependencyPath,
+  DEPENDENCY_PATH_CUSTOM_NAME_SYMBOL,
   DEPENDENCY_PATH_SYMBOL,
   IInstanceWithDependencyPath,
   INamespaceItem
@@ -48,4 +49,9 @@ export const registerDependencyPath = (options: IRegisterDependencyPathOptions =
   Object.defineProperty(Class, "name", { value: constr.name });
 
   return Class;
+};
+
+export const setNamespaceName = (namespace: string) => <T extends ClassType>(constr: T) => {
+  (constr as any)[DEPENDENCY_PATH_CUSTOM_NAME_SYMBOL] = namespace;
+  return constr;
 };

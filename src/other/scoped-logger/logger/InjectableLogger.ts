@@ -19,16 +19,16 @@ export interface ILoggerOptions {
 export class InjectableLogger implements ILogger {
   constructor(private options: ILoggerOptions) {}
 
-  public readonly log: LogFunctionSignature = (args: LogFunctionArguments) =>
+  public readonly log: LogFunctionSignature = (...args: LogFunctionArguments) =>
     this.options.handleLogItem(LogLevel.Log, args);
 
-  public readonly info: LogFunctionSignature = (args: LogFunctionArguments) =>
+  public readonly info: LogFunctionSignature = (...args: LogFunctionArguments) =>
     this.options.handleLogItem(LogLevel.Info, args);
 
-  public readonly warn: LogFunctionSignature = (args: LogFunctionArguments) =>
+  public readonly warn: LogFunctionSignature = (...args: LogFunctionArguments) =>
     this.options.handleLogItem(LogLevel.Warn, args);
 
-  public readonly error: LogFunctionSignature = (args: LogFunctionArguments) =>
+  public readonly error: LogFunctionSignature = (...args: LogFunctionArguments) =>
     this.options.handleLogItem(LogLevel.Error, args);
 
   public readonly logLazy: LogFunctionLazySignature = (lazy: LogFunctionLazyArgument) =>

@@ -4,7 +4,9 @@ describe("dependency-path", () => {
   describe("registerDependencyPath", () => {
     it("should work without any children dependencies", () => {
       @registerDependencyPath()
-      class A {}
+      class A {
+        public static someStatic: number = 123;
+      }
 
       const a = new A();
 

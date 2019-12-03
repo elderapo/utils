@@ -1,8 +1,10 @@
 import {
   registerDependencyPath,
   getNamespacesList,
-  setNamespaceName
+  setNamespaceName,
+  registerDynamicDependencyPathUpdater
 } from "./dependency-path-helpers";
+import { sleep } from "../../timers";
 
 describe("dependency-path", () => {
   const nextIds = new Map<string, number>();
@@ -334,6 +336,115 @@ describe("dependency-path", () => {
           namespace: "Child2-namespace"
         }
       ]);
+    });
+  });
+
+  describe("registerDynamicDependencyPathUpdater", () => {
+    it("should work with async method", async () => {
+      @registerDependencyPath()
+      class B {
+        private id = getNextId("b");
+      }
+
+      @registerDependencyPath()
+      class A {
+        private id = getNextId("a");
+        public b!: B;
+
+        @registerDynamicDependencyPathUpdater
+        public async initialize(shouldThrow: boolean): Promise<void> {
+          await sleep(100);
+          this.b = new B();
+
+          if (shouldThrow) {
+            throw new Error("EXPECTED_THROW");
+          }
+        }
+      }
+
+      const a1 = new A();
+
+      await expect(a1.initialize(false)).resolves.not.toThrow();
+      expect(getNamespacesList(a1)).toMatchObject([{ id: 0, namespace: "A" }]);
+      expect(getNamespacesList(a1.b)).toMatchObject([
+        { id: 0, namespace: "A" },
+        { id: 0, namespace: "B" }
+      ]);
+
+      const a2 = new A();
+      await expect(a2.initialize(true)).rejects.toThrowError("EXPECTED_THROW");
+      expect(getNamespacesList(a2)).toMatchObject([{ id: 1, namespace: "A" }]);
+      expect(getNamespacesList(a2.b)).toMatchObject([
+        { id: 1, namespace: "A" },
+        { id: 1, namespace: "B" }
+      ]);
+    });
+
+    it("should work on sync method", async () => {
+      @registerDependencyPath()
+      class B {
+        private id = getNextId("b");
+      }
+
+      @registerDependencyPath()
+      class A {
+        private id = getNextId("a");
+        public b!: B;
+
+        @registerDynamicDependencyPathUpdater
+        public initialize(shouldThrow: boolean): void {
+          this.b = new B();
+
+          if (shouldThrow) {
+            throw new Error("EXPECTED_THROW");
+          }
+        }
+      }
+
+      const a1 = new A();
+      expect(() => a1.initialize(false)).not.toThrow();
+      expect(getNamespacesList(a1)).toMatchObject([{ id: 0, namespace: "A" }]);
+      expect(getNamespacesList(a1.b)).toMatchObject([
+        { id: 0, namespace: "A" },
+        { id: 0, namespace: "B" }
+      ]);
+
+      const a2 = new A();
+      expect(() => a2.initialize(true)).toThrowError("EXPECTED_THROW");
+      expect(getNamespacesList(a2)).toMatchObject([{ id: 1, namespace: "A" }]);
+      expect(getNamespacesList(a2.b)).toMatchObject([
+        { id: 1, namespace: "A" },
+        { id: 1, namespace: "B" }
+      ]);
+    });
+
+    it("should throw if called on non dependency path class", async () => {
+      @registerDependencyPath()
+      class B {}
+
+      class A {
+        public b!: B;
+
+        private constructor() {}
+
+        @registerDynamicDependencyPathUpdater
+        private async initialize(): Promise<void> {
+          await sleep(100);
+          this.b = new B();
+        }
+
+        public static async create(): Promise<A> {
+          const a = new A();
+
+          await a.initialize();
+
+          return a;
+        }
+      }
+
+      await expect(A.create()).rejects.toThrowError(
+        "Class(A) hasn't been registered as dependency path."
+      );
     });
   });
 

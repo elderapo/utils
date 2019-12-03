@@ -5,6 +5,7 @@ import {
   IInstanceWithDependencyPath,
   INamespaceItem
 } from "./DependencyPath";
+import { noop } from "../noop";
 
 export const getNamespacesList = (instance: Object): INamespaceItem[] => {
   const dependencyPath: DependencyPath = (instance as any)[DEPENDENCY_PATH_SYMBOL];
@@ -51,6 +52,56 @@ export const registerDependencyPath = (options: IRegisterDependencyPathOptions =
   Object.defineProperty(Class, "name", { value: constr.name });
 
   return Class;
+};
+
+export const registerDynamicDependencyPathUpdater = (
+  target: any,
+  key: string,
+  descriptor: PropertyDescriptor
+) => {
+  const originalMethod = descriptor.value;
+
+  descriptor.value = function(...args: any[]) {
+    const dependencyPath = (this as any)[DEPENDENCY_PATH_SYMBOL] as DependencyPath;
+
+    if (!dependencyPath) {
+      throw new Error(
+        `Class(${target.constructor.name}) hasn't been registered as dependency path.`
+      );
+    }
+
+    const rebuildState = () => {
+      dependencyPath["rebuildState"]();
+    };
+
+    try {
+      const returnedValue = originalMethod.apply(this, args);
+
+      if (returnedValue instanceof Promise) {
+        // this wrapping is required so if original promise is not handler there will be error/warning shown in console
+        return new Promise(async (resolve, reject) => {
+          try {
+            const resolvedPromiseValue = await returnedValue;
+
+            rebuildState();
+            return resolve(resolvedPromiseValue);
+          } catch (ex) {
+            rebuildState();
+            return reject(ex);
+          }
+        });
+      }
+
+      rebuildState();
+      return returnedValue;
+    } catch (ex) {
+      rebuildState();
+      throw ex;
+    }
+  };
+
+  // return edited descriptor as opposed to overwriting the descriptor
+  return descriptor;
 };
 
 export const setNamespaceName = (namespace: string) => (constr: any) => {

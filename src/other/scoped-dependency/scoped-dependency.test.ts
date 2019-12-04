@@ -140,6 +140,128 @@ describe("scoped-dependency", () => {
       ]);
     });
 
+    it("should work with (decorated/non decorated) multiple inherited classes", () => {
+      @scoped()
+      class D {
+        protected id = getNextId("D");
+      }
+
+      @scoped()
+      class C {
+        protected id = getNextId("C");
+        public d = new D();
+      }
+
+      @scoped()
+      abstract class BBase {
+        protected id = getNextId("B");
+        public c = new C();
+      }
+
+      class BChild1 extends BBase {}
+      class BChild1Child1 extends BChild1 {}
+      class BChild1Child1Child1 extends BChild1Child1 {}
+
+      @scoped({ name: "B_CHILD2" })
+      class BChild2 extends BBase {}
+      @scoped({ name: "B_CHILD2_CHILD2" })
+      class BChild2Child2 extends BChild2 {}
+
+      @scoped()
+      class A {
+        public bc1 = new BChild1();
+        public bc1c1 = new BChild1Child1();
+        public bc1c1c1 = new BChild1Child1Child1();
+
+        public bc2 = new BChild2();
+        public bc2c2 = new BChild2Child2();
+      }
+
+      const a = new A();
+
+      expect(listScopes(a)).toMatchObject([{ id: null, name: "A" }]);
+
+      expect(listScopes(a.bc1)).toMatchObject([
+        { id: null, name: "A" },
+        { id: 0, name: "BChild1" }
+      ]);
+      expect(listScopes(a.bc1.c)).toMatchObject([
+        { id: null, name: "A" },
+        { id: 0, name: "BChild1" },
+        { id: 0, name: "C" }
+      ]);
+      expect(listScopes(a.bc1.c.d)).toMatchObject([
+        { id: null, name: "A" },
+        { id: 0, name: "BChild1" },
+        { id: 0, name: "C" },
+        { id: 0, name: "D" }
+      ]);
+
+      expect(listScopes(a.bc1c1)).toMatchObject([
+        { id: null, name: "A" },
+        { id: 1, name: "BChild1Child1" }
+      ]);
+      expect(listScopes(a.bc1c1.c)).toMatchObject([
+        { id: null, name: "A" },
+        { id: 1, name: "BChild1Child1" },
+        { id: 1, name: "C" }
+      ]);
+      expect(listScopes(a.bc1c1.c.d)).toMatchObject([
+        { id: null, name: "A" },
+        { id: 1, name: "BChild1Child1" },
+        { id: 1, name: "C" },
+        { id: 1, name: "D" }
+      ]);
+
+      expect(listScopes(a.bc1c1c1)).toMatchObject([
+        { id: null, name: "A" },
+        { id: 2, name: "BChild1Child1Child1" }
+      ]);
+      expect(listScopes(a.bc1c1c1.c)).toMatchObject([
+        { id: null, name: "A" },
+        { id: 2, name: "BChild1Child1Child1" },
+        { id: 2, name: "C" }
+      ]);
+      expect(listScopes(a.bc1c1c1.c.d)).toMatchObject([
+        { id: null, name: "A" },
+        { id: 2, name: "BChild1Child1Child1" },
+        { id: 2, name: "C" },
+        { id: 2, name: "D" }
+      ]);
+
+      expect(listScopes(a.bc2)).toMatchObject([
+        { id: null, name: "A" },
+        { id: 3, name: "B_CHILD2" }
+      ]);
+      expect(listScopes(a.bc2.c)).toMatchObject([
+        { id: null, name: "A" },
+        { id: 3, name: "B_CHILD2" },
+        { id: 3, name: "C" }
+      ]);
+      expect(listScopes(a.bc2.c.d)).toMatchObject([
+        { id: null, name: "A" },
+        { id: 3, name: "B_CHILD2" },
+        { id: 3, name: "C" },
+        { id: 3, name: "D" }
+      ]);
+
+      expect(listScopes(a.bc2c2)).toMatchObject([
+        { id: null, name: "A" },
+        { id: 4, name: "B_CHILD2_CHILD2" }
+      ]);
+      expect(listScopes(a.bc2c2.c)).toMatchObject([
+        { id: null, name: "A" },
+        { id: 4, name: "B_CHILD2_CHILD2" },
+        { id: 4, name: "C" }
+      ]);
+      expect(listScopes(a.bc2c2.c.d)).toMatchObject([
+        { id: null, name: "A" },
+        { id: 4, name: "B_CHILD2_CHILD2" },
+        { id: 4, name: "C" },
+        { id: 4, name: "D" }
+      ]);
+    });
+
     it("should correctly alter name", () => {
       @scoped({ name: "AAA" })
       class A {}
@@ -271,6 +393,17 @@ describe("scoped-dependency", () => {
       const child = new Child();
       expect(() => attachDependency(parent, child)).toThrowError(
         `Parent instance is not a scopedDependency!`
+      );
+    });
+
+    it("should throw if child hasn't been decorated with scoped", () => {
+      @scoped()
+      class Parent {}
+
+      const parent = new Parent();
+      const child = {};
+      expect(() => attachDependency(parent, child)).toThrowError(
+        `Child instance is not a scopedDependency!`
       );
     });
 

@@ -1,12 +1,4 @@
-import { SCOPED_DEPENDENCY } from "./consts";
-import { ScopedDependencyUtils } from "./ScopedDependencyUtils";
-
-export interface IScopedParent extends IScoped {}
-export interface IScopedChild extends IScoped {}
-
-export interface IScoped {
-  [SCOPED_DEPENDENCY]: true;
-}
+import { ScopedInternals } from "./ScopedInternals";
 
 export interface IScopedContext {
   name: string;
@@ -15,7 +7,7 @@ export interface IScopedContext {
 
 export interface IScopedOptions {
   name?: string;
-  onInstanceCreation?: <T>(instance: T & IScoped) => void;
+  onInstanceCreation?: <T>(instance: T) => void;
 }
 
 export const scoped = (options: IScopedOptions = {}): any => (
@@ -25,18 +17,14 @@ export const scoped = (options: IScopedOptions = {}): any => (
     constructor(...args: any[]) {
       super(...args);
 
-      const scopedInstance = ScopedDependencyUtils.markAsScoped(this);
-
-      ScopedDependencyUtils.findScopedChildren(scopedInstance).forEach(child =>
-        ScopedDependencyUtils.setParent(child, scopedInstance)
-      );
+      ScopedInternals.createScoped(this);
 
       if (options.name) {
-        ScopedDependencyUtils.setCustomName(scopedInstance, options.name);
+        ScopedInternals.applyCustomName(this, options.name);
       }
 
       if (options.onInstanceCreation) {
-        options.onInstanceCreation(scopedInstance);
+        options.onInstanceCreation(this);
       }
     }
   };
@@ -48,8 +36,8 @@ export const scoped = (options: IScopedOptions = {}): any => (
 };
 
 export const attachDependency = (parent: Object, child: Object): void => {
-  ScopedDependencyUtils.setParent(child, parent);
+  ScopedInternals.setParent(child, parent);
 };
 
 export const listScopes = (instance: Object): IScopedContext[] =>
-  ScopedDependencyUtils.getScopedContexts(instance);
+  ScopedInternals.getScopedContexts(instance);

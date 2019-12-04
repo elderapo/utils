@@ -1,4 +1,2 @@
-export * from "./ScopedDependencyUtils";
-export * from "./consts";
+export * from "./ScopedInternals";
 export * from "./scoped-dependency";
-export * from "./types";

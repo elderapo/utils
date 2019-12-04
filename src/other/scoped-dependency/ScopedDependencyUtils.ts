@@ -3,18 +3,9 @@ import {
   SCOPED_DEPENDENCY_CUSTOM_NAME,
   SCOPED_DEPENDENCY_PARENT
 } from "./consts";
+import { IScopedDependency, IScopeContext } from "./scoped-dependency";
 
-export interface IScopedDependency {
-  [SCOPED_DEPENDENCY]: true;
-  [SCOPED_DEPENDENCY_PARENT]?: IScopedDependency | null;
-  [SCOPED_DEPENDENCY_CUSTOM_NAME]?: string;
-}
-
-export interface IScopeContext {
-  name: string;
-  id: number | string | null;
-}
-
+/** @internal */
 export class ScopedDependencyUtils {
   public static isScopedDependency(instance: unknown): instance is IScopedDependency {
     if (typeof instance !== "object" || instance === null) {
@@ -51,6 +42,17 @@ export class ScopedDependencyUtils {
 
     if (!this.isScopedDependency(parent)) {
       throw new Error(`Parent instance is not a scopedDependency!`);
+    }
+
+    if (child[SCOPED_DEPENDENCY_PARENT] === parent) {
+      /*
+          In case of inheritance base class can already be decorated
+          with `scoped`. In that case it's unnesesery for child class
+          to be decorated with `scope` but should be allowed in case
+          someone needs to alter scope name or add `onInstanceCreation` hook.
+      */
+
+      return;
     }
 
     if (this.hasParent(child)) {

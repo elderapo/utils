@@ -1,4 +1,20 @@
-import { IScopeContext, IScopedDependency, ScopedDependencyUtils } from "./ScopedDependencyUtils";
+import {
+  SCOPED_DEPENDENCY,
+  SCOPED_DEPENDENCY_CUSTOM_NAME,
+  SCOPED_DEPENDENCY_PARENT
+} from "./consts";
+import { ScopedDependencyUtils } from "./ScopedDependencyUtils";
+
+export interface IScopedDependency {
+  [SCOPED_DEPENDENCY]: true;
+  [SCOPED_DEPENDENCY_PARENT]?: IScopedDependency | null;
+  [SCOPED_DEPENDENCY_CUSTOM_NAME]?: string;
+}
+
+export interface IScopeContext {
+  name: string;
+  id: number | string | null;
+}
 
 export interface IScopedOptions {
   name?: string;

@@ -12,8 +12,9 @@
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true,
     "strictPropertyInitialization": true,
-    "declarationDir": "dist/types",
-    "outDir": "dist/lib"
+    "stripInternal": true,
+    "declarationDir": "dist",
+    "outDir": "dist"
   },
   "include": ["src"]
 }

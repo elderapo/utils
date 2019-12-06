@@ -1,5 +1,5 @@
-import { IIntercetableOptions, interceptable } from "./intercetable";
-import { IntercetableContext, IntercetableContextType } from "./IntercetableContext";
+import { IInterceptableOptions, interceptable } from "./interceptable";
+import { InterceptableContext, InterceptableContextType } from "./InterceptableContext";
 import { sleep } from "../../timers";
 
 /*
@@ -11,8 +11,8 @@ import { sleep } from "../../timers";
  *
  */
 
-describe("intercetable", () => {
-  const createMocks = <T extends Object, R extends Required<IIntercetableOptions<T>>>(
+describe("interceptable", () => {
+  const createMocks = <T extends Object, R extends Required<IInterceptableOptions<T>>>(
     options: {
       onSet?: R["set"];
       onGet?: R["get"];
@@ -44,7 +44,7 @@ describe("intercetable", () => {
   it("assigments inside class constructor should cause internal set events", () => {
     expect.assertions(4);
 
-    const mocks = createMocks<A, Required<IIntercetableOptions<A>>>({});
+    const mocks = createMocks<A, Required<IInterceptableOptions<A>>>({});
 
     @interceptable(mocks)
     class A {
@@ -60,8 +60,8 @@ describe("intercetable", () => {
          * at this stage can be either null or internal.
          */
 
-        const type = IntercetableContext.getContextType(this);
-        expect(type === IntercetableContextType.Internal || type === null).toBe(true);
+        const type = InterceptableContext.getContextType(this);
+        expect(type === InterceptableContextType.Internal || type === null).toBe(true);
       }
     }
 
@@ -73,7 +73,7 @@ describe("intercetable", () => {
   });
 
   it("assigments outside class should cause external set events", () => {
-    const mocks = createMocks<A, Required<IIntercetableOptions<A>>>({});
+    const mocks = createMocks<A, Required<IInterceptableOptions<A>>>({});
 
     @interceptable(mocks)
     class A {
@@ -93,7 +93,7 @@ describe("intercetable", () => {
   it("assigments inside class method should cause internal set events", () => {
     expect.assertions(3);
 
-    const mocks = createMocks<A, Required<IIntercetableOptions<A>>>({});
+    const mocks = createMocks<A, Required<IInterceptableOptions<A>>>({});
 
     @interceptable(mocks)
     class A {
@@ -104,7 +104,7 @@ describe("intercetable", () => {
         this.a = a;
         this.b = b;
 
-        expect(IntercetableContext.getContextType(this)).toBe(IntercetableContextType.Internal);
+        expect(InterceptableContext.getContextType(this)).toBe(InterceptableContextType.Internal);
       }
     }
 
@@ -119,7 +119,7 @@ describe("intercetable", () => {
   it("assigments inside async class method should cause internal set events", async () => {
     expect.assertions(4);
 
-    const mocks = createMocks<A, Required<IIntercetableOptions<A>>>({});
+    const mocks = createMocks<A, Required<IInterceptableOptions<A>>>({});
 
     @interceptable(mocks)
     class A {
@@ -133,7 +133,7 @@ describe("intercetable", () => {
         this.b = b;
         await sleep(50);
 
-        expect(IntercetableContext.getContextType(this)).toBe(IntercetableContextType.Internal);
+        expect(InterceptableContext.getContextType(this)).toBe(InterceptableContextType.Internal);
       }
     }
 
@@ -146,9 +146,10 @@ describe("intercetable", () => {
   });
 
   it("setting functions as class properties from constructor should always raise an error", () => {
-    const mocks = createMocks<ClassWithNormalFN, Required<IIntercetableOptions<ClassWithNormalFN>>>(
-      {}
-    );
+    const mocks = createMocks<
+      ClassWithNormalFN,
+      Required<IInterceptableOptions<ClassWithNormalFN>>
+    >({});
 
     @interceptable(mocks)
     class ClassWithNormalFN {
@@ -167,7 +168,7 @@ describe("intercetable", () => {
   });
 
   it("setting functions as class properties dynamically should be only allowed if `allowDynamicFunctionAssigments` has been provided, else raise error", () => {
-    const mocks = createMocks<ADisallowed, Required<IIntercetableOptions<ADisallowed>>>({});
+    const mocks = createMocks<ADisallowed, Required<IInterceptableOptions<ADisallowed>>>({});
 
     @interceptable(mocks)
     class ADisallowed {

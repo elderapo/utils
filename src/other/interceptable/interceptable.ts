@@ -1,6 +1,6 @@
-import { IntercetableContext, IntercetableContextType } from "./IntercetableContext";
+import { InterceptableContext, InterceptableContextType } from "./InterceptableContext";
 
-export interface IIntercetableOptions<
+export interface IInterceptableOptions<
   T extends Object,
   K extends keyof T = keyof T,
   V extends T[K] = T[K]
@@ -20,7 +20,7 @@ export const interceptable = <
   K extends keyof I,
   V extends I[K]
 >(
-  _options: IIntercetableOptions<I> = {}
+  _options: IInterceptableOptions<I> = {}
 ) => (OriginalClass: C) => {
   const options = Object.assign({}, defaultInterceptableOptions, _options);
 
@@ -88,8 +88,8 @@ export const interceptable = <
         set: (target: I, key: K, value: V) => onSet(key, value, false)
       });
 
-      IntercetableContext.setContextType(internalContext, IntercetableContextType.Internal);
-      IntercetableContext.setContextType(externalContext, IntercetableContextType.External);
+      InterceptableContext.setContextType(internalContext, InterceptableContextType.Internal);
+      InterceptableContext.setContextType(externalContext, InterceptableContextType.External);
 
       // Option #1 step 2, @CAVEAT: symbols can "arrive" in different order.
       [

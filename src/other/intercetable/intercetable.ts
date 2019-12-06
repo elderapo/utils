@@ -32,7 +32,7 @@ export const interceptable = <
       // const original: I = Object.create(ProxiedClass.prototype); // # Option #2 step 1
 
       const onSet = (key: K, newValue: V, isInternal: boolean): boolean => {
-        // @IDEA: Maybe just disallow setting functions as class properites?
+        // @IDEA: Maybe just disallow setting functions as class properites from constructor?
         if (typeof newValue === "function") {
           throw new Error("Cannot set function as class property. Use methods instead!");
         }

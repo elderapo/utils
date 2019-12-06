@@ -1,5 +1,4 @@
 import { IntercetableContext, IntercetableContextType } from "./IntercetableContext";
-import { isBindable } from "./isBindable";
 
 export interface IIntercetableOptions<
   T extends Object,
@@ -10,8 +9,6 @@ export interface IIntercetableOptions<
   get?: (target: T, key: K, suggestedValue: V, isInternal: boolean) => V;
 }
 
-export type IntercetableReturnValue<T extends Object> = any;
-
 export const interceptable = <
   C extends new (...args: any[]) => any,
   I extends InstanceType<C>,
@@ -19,16 +16,25 @@ export const interceptable = <
   V extends I[K]
 >(
   options: IIntercetableOptions<I> = {}
-): IntercetableReturnValue<C> => (OriginalClass: C) => {
+) => (OriginalClass: C) => {
   return new Proxy(OriginalClass, {
     construct(ProxiedClass: C, args: any) {
-      const original: I = new ProxiedClass(args);
-      // const original: I = Object.create(ProxiedClass.prototype);
+      /*
+       * Option #1 is better but still not perfect. Binding arrow functions does not work
+       * and additionally there is no 100% guaranteed method of checking if x function is
+       * an arrow function.
+       *
+       * Option #2 sucks because it only works if es6 classes get transpiled to es3/es5
+       */
+
+      const original: I = new ProxiedClass(args); // Option #1 step 1
+
+      // const original: I = Object.create(ProxiedClass.prototype); // # Option #2 step 1
 
       const onSet = (key: K, newValue: V, isInternal: boolean): boolean => {
+        // @IDEA: Maybe just disallow setting functions as class properites?
         if (typeof newValue === "function") {
-          console.log("isBindable", key, isBindable(newValue));
-          // newValue = newValue.bind(original);
+          throw new Error("Cannot set function as class property. Use methods instead!");
         }
 
         if (options.set) {
@@ -68,12 +74,13 @@ export const interceptable = <
       IntercetableContext.setContextType(internalContext, IntercetableContextType.Internal);
       IntercetableContext.setContextType(externalContext, IntercetableContextType.External);
 
-      // @CAVEAT: symbols can "arrive" in different order.
+      // Option #1 step 2, @CAVEAT: symbols can "arrive" in different order.
       [...Object.getOwnPropertyNames(original), ...Object.getOwnPropertySymbols(original)].forEach(
         key => onSet(key as K, original[key], true)
       );
 
-      // ProxiedClass.prototype.constructor.call(original, args);
+      // // Option #2 step 2
+      // ProxiedClass.prototype.constructor.call(internalContext, args);
 
       return externalContext;
     }

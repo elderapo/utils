@@ -1,5 +1,15 @@
 import { IIntercetableOptions, interceptable } from "./intercetable";
 import { IntercetableContext, IntercetableContextType } from "./IntercetableContext";
+import { sleep } from "../../timers";
+
+/*
+ *
+ * @TODO:
+ * - Add `Object.defineProperty(...)` tests.
+ * - Add getter/setters tests.
+ * - Add support for other "proxable" actions (on delete, initialize?).
+ *
+ */
 
 describe("intercetable", () => {
   const createMocks = <T extends Object, R extends Required<IIntercetableOptions<T>>>(
@@ -45,8 +55,13 @@ describe("intercetable", () => {
       public constructor() {
         this.c = false;
 
-        // because proxies hasn't been registered yet...
-        expect(IntercetableContext.getContextType(this)).toBe(null);
+        /*
+         * This is temporary. Depending if on the chosen construction option context type
+         * at this stage can be either null or internal.
+         */
+
+        const type = IntercetableContext.getContextType(this);
+        expect(type === IntercetableContextType.Internal || type === null).toBe(true);
       }
     }
 
@@ -101,7 +116,57 @@ describe("intercetable", () => {
     expect(mocks.set).toHaveBeenNthCalledWith(2, a, "b", "bbb", true);
   });
 
-  it.only("assigments inside class property function should cause internal set events", () => {
+  it("assigments inside async class method should cause internal set events", async () => {
+    expect.assertions(4);
+
+    const mocks = createMocks<A, Required<IIntercetableOptions<A>>>({});
+
+    @interceptable(mocks)
+    class A {
+      public a?: number;
+      public b?: string;
+
+      public async setValues(a: number, b: string): Promise<void> {
+        await sleep(50);
+        this.a = a;
+        await sleep(50);
+        this.b = b;
+        await sleep(50);
+
+        expect(IntercetableContext.getContextType(this)).toBe(IntercetableContextType.Internal);
+      }
+    }
+
+    const a = new A();
+
+    await expect(a.setValues(123, "bbb")).resolves.not.toThrow();
+
+    expect(mocks.set).toHaveBeenNthCalledWith(1, a, "a", 123, true);
+    expect(mocks.set).toHaveBeenNthCalledWith(2, a, "b", "bbb", true);
+  });
+
+  it("setting functions as class properties should cause an error", () => {
+    const mocks = createMocks<ClassWithNormalFN, Required<IIntercetableOptions<ClassWithNormalFN>>>(
+      {}
+    );
+
+    @interceptable(mocks)
+    class ClassWithNormalFN {
+      // tslint:disable-next-line: no-empty
+      public setValuesNormal = function(): void {};
+    }
+
+    @interceptable(mocks)
+    class ClassWithArrowFN {
+      // tslint:disable-next-line: no-empty
+      public setValuesArrow = (): void => {};
+    }
+
+    expect(() => new ClassWithArrowFN()).toThrowError();
+    expect(() => new ClassWithArrowFN()).toThrowError();
+  });
+
+  it.skip("assigments inside class property function should cause internal set events", () => {
     const mocks = createMocks<A, Required<IIntercetableOptions<A>>>({});
 
     @interceptable(mocks)

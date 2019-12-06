@@ -5,9 +5,14 @@ export interface IInterceptableOptions<
   K extends keyof T = keyof T,
   V extends T[K] = T[K]
 > {
+  afterConstruct?: (original: T) => void;
+
   set?: (original: T, key: K, value: V, isInternal: boolean) => void;
   get?: (original: T, key: K, suggestedValue: V, isInternal: boolean) => V;
-  afterConstruct?: (original: T) => void;
+
+  defineProperty?: (target: T, p: K, descriptor: PropertyDescriptor, isInternal: boolean) => void;
+  deleteProperty?: (target: T, p: K, isInternal: boolean) => void;
+
   allowDynamicFunctionAssigments?: boolean;
 }
 
@@ -78,16 +83,43 @@ export const interceptable = <
         return suggestedValue;
       };
 
+      const onDefineProperty = (
+        key: K,
+        descriptor: PropertyDescriptor,
+        isInternal: boolean
+      ): boolean => {
+        if (options.defineProperty) {
+          options.defineProperty(original, key, descriptor, isInternal);
+          return true;
+        }
+
+        return true;
+      };
+
+      const onDeleteProperty = (key: K, isInternal: boolean): boolean => {
+        if (options.deleteProperty) {
+          options.deleteProperty(original, key, isInternal);
+          return true;
+        }
+        return true;
+      };
+
       // accessed by class methods
       const internalContext = new Proxy(original, {
         get: (target: I, key: K) => onGet(key, true),
-        set: (target: I, key: K, value: V) => onSet(key, value, true)
+        set: (target: I, key: K, value: V) => onSet(key, value, true),
+        defineProperty: (target: I, key: K, descriptor: PropertyDescriptor) =>
+          onDefineProperty(key, descriptor, true),
+        deleteProperty: (target: I, key: K) => onDeleteProperty(key, true)
       });
 
       // accessed by class instance consumers or w/e it's called
       const externalContext = new Proxy(original, {
         get: (target: I, key: K) => onGet(key, false),
-        set: (target: I, key: K, value: V) => onSet(key, value, false)
+        set: (target: I, key: K, value: V) => onSet(key, value, false),
+        defineProperty: (target: I, key: K, descriptor: PropertyDescriptor) =>
+          onDefineProperty(key, descriptor, false),
+        deleteProperty: (target: I, key: K) => onDeleteProperty(key, false)
       });
 
       InterceptableContext.setupContexts(original, internalContext, externalContext);

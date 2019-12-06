@@ -17,6 +17,8 @@ describe("interceptable", () => {
       onSet?: R["set"];
       onGet?: R["get"];
       onAfterConstruct?: R["afterConstruct"];
+      onDefineProperty?: R["defineProperty"];
+      onDeleteProperty?: R["deleteProperty"];
     } = {}
   ) => {
     const set = jest.fn<void, Parameters<R["set"]>>((target, key, value, isInternal) => {
@@ -41,11 +43,27 @@ describe("interceptable", () => {
       }
     });
 
-    return { set, get, afterConstruct };
+    const defineProperty = jest.fn<void, Parameters<R["defineProperty"]>>(
+      (target, key, descriptor, isInternal) => {
+        if (options.onDefineProperty) {
+          options.onDefineProperty(target, key, descriptor, isInternal);
+        }
+      }
+    );
+
+    const deleteProperty = jest.fn<void, Parameters<R["deleteProperty"]>>(
+      (target, key, isInternal) => {
+        if (options.onDeleteProperty) {
+          options.onDeleteProperty(target, key, isInternal);
+        }
+      }
+    );
+
+    return { set, get, afterConstruct, defineProperty, deleteProperty };
   };
 
   describe("basic functionality", () => {
-    it("afterConstruct", () => {
+    it("should correctly call options.afterConstruct", () => {
       const mocks = createMocks<A, Required<IInterceptableOptions<A>>>();
 
       @interceptable(mocks)
@@ -62,7 +80,7 @@ describe("interceptable", () => {
       expect(mocks.afterConstruct).toHaveBeenCalledTimes(2);
     });
 
-    it("set", () => {
+    it("should correctly call options.set", () => {
       const mocks = createMocks<A, Required<IInterceptableOptions<A>>>();
 
       @interceptable(mocks)
@@ -85,7 +103,7 @@ describe("interceptable", () => {
       expect(mocks.set).toHaveBeenCalledTimes(4);
     });
 
-    it("get", () => {
+    it("should correctly call options.get", () => {
       const mocks = createMocks<A, Required<IInterceptableOptions<A>>>();
 
       @interceptable(mocks)
@@ -113,89 +131,78 @@ describe("interceptable", () => {
       expect(mocks.get).toHaveBeenNthCalledWith(4, a2, "a", "a2", true);
     });
 
-    describe("should ignore previous options for classes decorated multiple times with `interceptable`", () => {
-      it("afterConstruct", () => {
-        const mocks1 = createMocks<A, Required<IInterceptableOptions<A>>>();
-        const mocks2 = createMocks<A, Required<IInterceptableOptions<A>>>();
+    it.todo("should correctly call options.defineProperty");
 
-        @interceptable(mocks2)
-        @interceptable(mocks1)
-        class A {
-          public a: string = "a";
+    it("should correctly call options.deleteProperty", () => {
+      const mocks = createMocks<A, Required<IInterceptableOptions<A>>>();
+
+      @interceptable(mocks)
+      class A {
+        public aForInternalDeletion: string = "a";
+        public bForInternalDeletion: number = 123;
+
+        public aForExternalDeletion: string = "a";
+        public bForExternalDeletion: number = 123;
+
+        public delete() {
+          delete this.aForInternalDeletion;
+          delete this.bForInternalDeletion;
+        }
+      }
+
+      const a = new A();
+
+      expect(mocks.deleteProperty).toHaveBeenCalledTimes(0);
+
+      a.delete();
+
+      expect(mocks.deleteProperty).toHaveBeenNthCalledWith(1, a, "aForInternalDeletion", true);
+      expect(mocks.deleteProperty).toHaveBeenNthCalledWith(2, a, "bForInternalDeletion", true);
+
+      expect(mocks.deleteProperty).toHaveBeenCalledTimes(2);
+
+      delete a.aForExternalDeletion;
+      delete a.bForExternalDeletion;
+
+      expect(mocks.deleteProperty).toHaveBeenNthCalledWith(3, a, "aForExternalDeletion", false);
+      expect(mocks.deleteProperty).toHaveBeenNthCalledWith(4, a, "bForExternalDeletion", false);
+
+      expect(mocks.deleteProperty).toHaveBeenCalledTimes(4);
+    });
+
+    it("should ignore previous options for classes decorated multiple times with `interceptable`", () => {
+      const mocks1 = createMocks<A, Required<IInterceptableOptions<A>>>();
+      const mocks2 = createMocks<A, Required<IInterceptableOptions<A>>>();
+
+      @interceptable(mocks2)
+      @interceptable(mocks1)
+      class A {
+        public a: string = "a";
+
+        public internallySetA(newA: string): void {
+          this.a = newA;
         }
 
-        const a1 = new A();
-        const a2 = new A();
-
-        expect(mocks2.afterConstruct).toHaveBeenNthCalledWith(1, a1);
-        expect(mocks2.afterConstruct).toHaveBeenNthCalledWith(2, a2);
-
-        expect(mocks2.afterConstruct).toHaveBeenCalledTimes(2);
-        expect(mocks1.afterConstruct).toHaveBeenCalledTimes(0);
-      });
-
-      it("set", () => {
-        const mocks1 = createMocks<A, Required<IInterceptableOptions<A>>>();
-        const mocks2 = createMocks<A, Required<IInterceptableOptions<A>>>();
-
-        @interceptable(mocks2)
-        @interceptable(mocks1)
-        class A {
-          public a: string = "a";
+        public internallyAccessA() {
+          // tslint:disable-next-line: no-unused-expression
+          this.a;
         }
+      }
 
-        const a1 = new A();
-        const a2 = new A();
+      const a = new A();
 
-        expect(mocks2.set).toHaveBeenNthCalledWith(1, a1, "a", "a", true);
-        expect(mocks2.set).toHaveBeenNthCalledWith(2, a2, "a", "a", true);
+      expect(mocks2.afterConstruct).toHaveBeenNthCalledWith(1, a);
+      expect(mocks2.set).toHaveBeenNthCalledWith(1, a, "a", "a", true);
 
-        a1.a = "aaa";
-        a2.a = "bbb";
+      a.internallyAccessA();
+      a.internallySetA("fffff");
+      a.a = "ffsdfsf";
+      // tslint:disable-next-line: no-unused-expression
+      a.a;
 
-        expect(mocks2.set).toHaveBeenNthCalledWith(3, a1, "a", "aaa", false);
-        expect(mocks2.set).toHaveBeenNthCalledWith(4, a2, "a", "bbb", false);
-
-        expect(mocks2.set).toHaveBeenCalledTimes(4);
-        expect(mocks1.set).toHaveBeenCalledTimes(0);
-      });
-
-      it("get", () => {
-        const mocks1 = createMocks<A, Required<IInterceptableOptions<A>>>();
-        const mocks2 = createMocks<A, Required<IInterceptableOptions<A>>>();
-
-        @interceptable(mocks2)
-        @interceptable(mocks1)
-        class A {
-          constructor(private a: string) {}
-
-          public internallyAccessA() {
-            // tslint:disable-next-line: no-unused-expression
-            this.a;
-          }
-        }
-
-        const a1 = new A("a1");
-        const a2 = new A("a2");
-
-        expect(mocks1.get).toHaveBeenCalledTimes(0);
-        expect(mocks2.get).toHaveBeenCalledTimes(0);
-
-        a1.internallyAccessA();
-
-        expect(mocks1.get).toHaveBeenCalledTimes(0);
-        expect(mocks2.get).toHaveBeenCalledTimes(2);
-
-        a2.internallyAccessA();
-
-        expect(mocks1.get).toHaveBeenCalledTimes(0);
-        expect(mocks2.get).toHaveBeenCalledTimes(4);
-
-        expect(mocks2.get).toHaveBeenNthCalledWith(1, a1, "internallyAccessA", expect.anything(), false); // prettier-ignore
-        expect(mocks2.get).toHaveBeenNthCalledWith(2, a1, "a", "a1", true);
-        expect(mocks2.get).toHaveBeenNthCalledWith(3, a2, "internallyAccessA", expect.anything(), false); // prettier-ignore
-        expect(mocks2.get).toHaveBeenNthCalledWith(4, a2, "a", "a2", true);
-      });
+      expect(mocks1.afterConstruct).not.toHaveBeenCalled();
+      expect(mocks1.set).not.toHaveBeenCalled();
+      expect(mocks1.get).not.toHaveBeenCalled();
     });
   });
 

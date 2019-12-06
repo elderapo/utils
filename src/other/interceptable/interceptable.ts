@@ -1,4 +1,4 @@
-import { InterceptableContext, InterceptableContextType } from "./InterceptableContext";
+import { InterceptableContext } from "./InterceptableContext";
 
 export interface IInterceptableOptions<
   T extends Object,
@@ -25,8 +25,10 @@ export const interceptable = <
 ) => (OriginalClass: C) => {
   const options = Object.assign({}, defaultInterceptableOptions, _options);
 
+  // @TODO: what should happen if single class gets decorated multiple times with `interceptable`?
+
   return new Proxy(OriginalClass, {
-    construct(ProxiedClass: C, args: any) {
+    construct(ProxiedClass, args) {
       /*
        * Option #1 is better but still not perfect. Binding arrow functions does not work
        * and additionally there is no 100% guaranteed method of checking if x function is

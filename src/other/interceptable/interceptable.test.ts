@@ -41,6 +41,37 @@ describe("interceptable", () => {
     return { set, get };
   };
 
+  it("assigments should be working just fine with empty options", () => {
+    @interceptable()
+    class A {
+      public a: number = 123;
+      public b: string = "bbb";
+      public c: boolean;
+
+      public constructor() {
+        this.c = false;
+      }
+
+      public checkInternalReads() {
+        expect(a.a).toBe(123);
+        expect(a.b).toBe("BBB");
+        expect(a.c).toBe(false);
+      }
+    }
+
+    const a = new A();
+
+    expect(a.a).toBe(123);
+    expect(a.b).toBe("bbb");
+    expect(a.c).toBe(false);
+
+    a.b = a.b.toUpperCase();
+
+    expect(a.b).toBe("BBB");
+
+    a.checkInternalReads();
+  });
+
   it("assigments inside class constructor should cause internal set events", () => {
     expect.assertions(4);
 

@@ -16,10 +16,14 @@ const scopedInstances = new WeakSet<IScoped>();
 
 export class ScopedInternals {
   public static createScoped(instance: Object): void {
+    if (scopedInstances.has(instance)) {
+      return;
+    }
+
     scopedInstances.add(instance);
 
     // mark direct children as parents
-    this.findDirectScopedChildren(instance).forEach(child => this.setParent(child, instance));
+    // this.findDirectScopedChildren(instance).forEach(child => this.setParent(child, instance));
   }
 
   public static applyCustomName(instance: IScoped, name: string): void {
@@ -92,11 +96,11 @@ export class ScopedInternals {
     return null;
   }
 
-  private static findDirectScopedChildren(parent: IScopedParent): IScopedChild[] {
-    return Object.entries(parent)
-      .map(([_, value]) => value)
-      .filter(value => this.isScoped(value));
-  }
+  // private static findDirectScopedChildren(parent: IScopedParent): IScopedChild[] {
+  //   return Object.entries(parent)
+  //     .map(([_, value]) => value)
+  //     .filter(value => this.isScoped(value));
+  // }
 
   private static hasPotencialToBeScoped(input: unknown): input is Object {
     if (typeof input !== "object" || input === null) {
@@ -106,7 +110,7 @@ export class ScopedInternals {
     return true;
   }
 
-  private static isScoped(instance: unknown): instance is IScoped {
+  public static isScoped(instance: unknown): instance is IScoped {
     if (!this.hasPotencialToBeScoped(instance)) {
       return false;
     }

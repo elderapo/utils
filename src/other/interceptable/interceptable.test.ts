@@ -19,15 +19,11 @@ describe("interceptable", () => {
       onAfterConstruct?: R["afterConstruct"];
     } = {}
   ) => {
-    const set = jest.fn<ReturnType<R["set"]>, Parameters<R["set"]>>(
-      (target, key, value, isInternal) => {
-        if (options.onSet) {
-          return options.onSet(target, key, value as any, isInternal);
-        }
-
-        return true as any;
+    const set = jest.fn<void, Parameters<R["set"]>>((target, key, value, isInternal) => {
+      if (options.onSet) {
+        options.onSet(target, key, value as any, isInternal);
       }
-    );
+    });
 
     const get = jest.fn<ReturnType<R["get"]>, Parameters<R["get"]>>(
       (target, key, suggestedValue, isInternal) => {
@@ -39,15 +35,10 @@ describe("interceptable", () => {
       }
     );
 
-    const afterConstruct = jest.fn<
-      ReturnType<R["afterConstruct"]>,
-      Parameters<R["afterConstruct"]>
-    >(target => {
+    const afterConstruct = jest.fn<void, Parameters<R["afterConstruct"]>>(target => {
       if (options.onAfterConstruct) {
-        return options.onAfterConstruct(target);
+        options.onAfterConstruct(target);
       }
-
-      return undefined as any;
     });
 
     return { set, get, afterConstruct };

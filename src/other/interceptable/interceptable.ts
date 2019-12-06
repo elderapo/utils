@@ -5,7 +5,7 @@ export interface IInterceptableOptions<
   K extends keyof T = keyof T,
   V extends T[K] = T[K]
 > {
-  set?: (original: T, key: K, value: V, isInternal: boolean) => boolean;
+  set?: (original: T, key: K, value: V, isInternal: boolean) => void;
   get?: (original: T, key: K, suggestedValue: V, isInternal: boolean) => V;
   afterConstruct?: (original: T) => void;
   allowDynamicFunctionAssigments?: boolean;
@@ -27,8 +27,6 @@ export const interceptable = <
 ) => (OriginalClass: C): C => {
   const options = Object.assign({}, defaultInterceptableOptions, _options);
 
-  // @TODO: what should happen if single class gets decorated multiple times with `interceptable`?
-
   if (originalClasses.has(OriginalClass)) {
     // It means that `OriginalClass` has been already decorated with `interceptable`.
     // Lets get original `OriginalClass` lol...
@@ -37,17 +35,7 @@ export const interceptable = <
 
   const Interceptable = new Proxy(OriginalClass, {
     construct(ProxiedClass, args) {
-      /*
-       * Option #1 is better but still not perfect. Binding arrow functions does not work
-       * and additionally there is no 100% guaranteed method of checking if x function is
-       * an arrow function.
-       *
-       * Option #2 sucks because it only works if es6 classes get transpiled to es3/es5
-       */
-
-      const original: I = new ProxiedClass(...args); // Option #1 step 1
-
-      // const original: I = Object.create(ProxiedClass.prototype); // # Option #2 step 1
+      const original: I = new ProxiedClass(...args);
 
       const onSet = (key: K, newValue: V, isInternal: boolean): boolean => {
         if (typeof newValue === "function") {
@@ -63,9 +51,12 @@ export const interceptable = <
         }
 
         if (options.set) {
-          return options.set(original, key, newValue, isInternal);
+          // If there is set handler it should decide if value should be set or not.
+          options.set(original, key, newValue, isInternal);
+          return true;
         }
 
+        // By default just update value.
         original[key] = newValue;
         return true;
       };
@@ -101,14 +92,10 @@ export const interceptable = <
 
       InterceptableContext.setupContexts(original, internalContext, externalContext);
 
-      // Option #1 step 2, @CAVEAT: symbols can "arrive" in different order.
       [
         ...Object.getOwnPropertyNames(original),
         ...Object.getOwnPropertySymbols(original)
       ].forEach(key => onSet(key as K, original[key], true));
-
-      // // Option #2 step 2
-      // ProxiedClass.prototype.constructor.call(internalContext, args);
 
       if (options.afterConstruct) {
         options.afterConstruct(original);

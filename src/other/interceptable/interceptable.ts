@@ -15,19 +15,27 @@ const defaultInterceptableOptions = {
   allowDynamicFunctionAssigments: false
 };
 
+const originalClasses = new WeakMap<any, any>();
+
 export const interceptable = <
   C extends new (...args: any[]) => any,
   I extends InstanceType<C>,
   K extends keyof I,
   V extends I[K]
 >(
-  _options: IInterceptableOptions<I> = {}
-) => (OriginalClass: C) => {
+  _options: IInterceptableOptions<I>
+) => (OriginalClass: C): C => {
   const options = Object.assign({}, defaultInterceptableOptions, _options);
 
   // @TODO: what should happen if single class gets decorated multiple times with `interceptable`?
 
-  return new Proxy(OriginalClass, {
+  if (originalClasses.has(OriginalClass)) {
+    // It means that `OriginalClass` has been already decorated with `interceptable`.
+    // Lets get original `OriginalClass` lol...
+    OriginalClass = originalClasses.get(OriginalClass);
+  }
+
+  const Interceptable = new Proxy(OriginalClass, {
     construct(ProxiedClass, args) {
       /*
        * Option #1 is better but still not perfect. Binding arrow functions does not work
@@ -37,7 +45,7 @@ export const interceptable = <
        * Option #2 sucks because it only works if es6 classes get transpiled to es3/es5
        */
 
-      const original: I = new ProxiedClass(args); // Option #1 step 1
+      const original: I = new ProxiedClass(...args); // Option #1 step 1
 
       // const original: I = Object.create(ProxiedClass.prototype); // # Option #2 step 1
 
@@ -109,4 +117,8 @@ export const interceptable = <
       return externalContext;
     }
   });
+
+  originalClasses.set(Interceptable, OriginalClass);
+
+  return Interceptable;
 };

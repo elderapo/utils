@@ -16,6 +16,7 @@ describe("interceptable", () => {
     options: {
       onSet?: R["set"];
       onGet?: R["get"];
+      onAfterConstruct?: R["afterConstruct"];
     } = {}
   ) => {
     const set = jest.fn<ReturnType<R["set"]>, Parameters<R["set"]>>(
@@ -38,288 +39,568 @@ describe("interceptable", () => {
       }
     );
 
-    return { set, get };
+    const afterConstruct = jest.fn<
+      ReturnType<R["afterConstruct"]>,
+      Parameters<R["afterConstruct"]>
+    >(target => {
+      if (options.onAfterConstruct) {
+        return options.onAfterConstruct(target);
+      }
+
+      return undefined as any;
+    });
+
+    return { set, get, afterConstruct };
   };
 
-  it("assigments should be working just fine with empty options", () => {
-    @interceptable()
-    class A {
-      public a: number = 123;
-      public b: string = "bbb";
-      public c: boolean;
+  describe("basic functionality", () => {
+    it("afterConstruct", () => {
+      const mocks = createMocks<A, Required<IInterceptableOptions<A>>>();
 
-      public constructor() {
-        this.c = false;
+      @interceptable(mocks)
+      class A {
+        public a: string = "a";
       }
 
-      public checkInternalReads() {
-        expect(a.a).toBe(123);
-        expect(a.b).toBe("BBB");
-        expect(a.c).toBe(false);
+      const a1 = new A();
+      const a2 = new A();
+
+      expect(mocks.afterConstruct).toHaveBeenNthCalledWith(1, a1);
+      expect(mocks.afterConstruct).toHaveBeenNthCalledWith(2, a2);
+
+      expect(mocks.afterConstruct).toHaveBeenCalledTimes(2);
+    });
+
+    it("set", () => {
+      const mocks = createMocks<A, Required<IInterceptableOptions<A>>>();
+
+      @interceptable(mocks)
+      class A {
+        public a: string = "a";
       }
-    }
 
-    const a = new A();
+      const a1 = new A();
+      const a2 = new A();
 
-    expect(a.a).toBe(123);
-    expect(a.b).toBe("bbb");
-    expect(a.c).toBe(false);
+      expect(mocks.set).toHaveBeenNthCalledWith(1, a1, "a", "a", true);
+      expect(mocks.set).toHaveBeenNthCalledWith(2, a2, "a", "a", true);
 
-    a.b = a.b.toUpperCase();
+      a1.a = "aaa";
+      a2.a = "bbb";
 
-    expect(a.b).toBe("BBB");
+      expect(mocks.set).toHaveBeenNthCalledWith(3, a1, "a", "aaa", false);
+      expect(mocks.set).toHaveBeenNthCalledWith(4, a2, "a", "bbb", false);
 
-    a.checkInternalReads();
-  });
+      expect(mocks.set).toHaveBeenCalledTimes(4);
+    });
 
-  it("assigments inside class constructor should cause internal set events", () => {
-    expect.assertions(4);
+    it("get", () => {
+      const mocks = createMocks<A, Required<IInterceptableOptions<A>>>();
 
-    const mocks = createMocks<A, Required<IInterceptableOptions<A>>>({});
+      @interceptable(mocks)
+      class A {
+        constructor(private a: string) {}
 
-    @interceptable(mocks)
-    class A {
-      public a: number = 123;
-      public b: string = "bbb";
-      public c: boolean;
-
-      public constructor() {
-        this.c = false;
-
-        /*
-         * This is temporary. Depending if on the chosen construction option context type
-         * at this stage can be either null or internal.
-         */
-
-        const type = InterceptableContext.getContextType(this);
-        expect(type === InterceptableContextType.Internal || type === null).toBe(true);
+        public internallyAccessA() {
+          // tslint:disable-next-line: no-unused-expression
+          this.a;
+        }
       }
-    }
 
-    const a = new A();
+      const a1 = new A("a1");
+      const a2 = new A("a2");
 
-    expect(mocks.set).toHaveBeenNthCalledWith(1, a, "a", 123, true);
-    expect(mocks.set).toHaveBeenNthCalledWith(2, a, "b", "bbb", true);
-    expect(mocks.set).toHaveBeenNthCalledWith(3, a, "c", false, true);
+      expect(mocks.get).toHaveBeenCalledTimes(0);
+      a1.internallyAccessA();
+      expect(mocks.get).toHaveBeenCalledTimes(2);
+      a2.internallyAccessA();
+      expect(mocks.get).toHaveBeenCalledTimes(4);
+
+      expect(mocks.get).toHaveBeenNthCalledWith(1, a1, "internallyAccessA", expect.anything(), false); // prettier-ignore
+      expect(mocks.get).toHaveBeenNthCalledWith(2, a1, "a", "a1", true);
+      expect(mocks.get).toHaveBeenNthCalledWith(3, a2, "internallyAccessA", expect.anything(), false); // prettier-ignore
+      expect(mocks.get).toHaveBeenNthCalledWith(4, a2, "a", "a2", true);
+    });
+
+    describe("should ignore previous options for classes decorated multiple times with `interceptable`", () => {
+      it("afterConstruct", () => {
+        const mocks1 = createMocks<A, Required<IInterceptableOptions<A>>>();
+        const mocks2 = createMocks<A, Required<IInterceptableOptions<A>>>();
+
+        @interceptable(mocks2)
+        @interceptable(mocks1)
+        class A {
+          public a: string = "a";
+        }
+
+        const a1 = new A();
+        const a2 = new A();
+
+        expect(mocks2.afterConstruct).toHaveBeenNthCalledWith(1, a1);
+        expect(mocks2.afterConstruct).toHaveBeenNthCalledWith(2, a2);
+
+        expect(mocks2.afterConstruct).toHaveBeenCalledTimes(2);
+        expect(mocks1.afterConstruct).toHaveBeenCalledTimes(0);
+      });
+
+      it("set", () => {
+        const mocks1 = createMocks<A, Required<IInterceptableOptions<A>>>();
+        const mocks2 = createMocks<A, Required<IInterceptableOptions<A>>>();
+
+        @interceptable(mocks2)
+        @interceptable(mocks1)
+        class A {
+          public a: string = "a";
+        }
+
+        const a1 = new A();
+        const a2 = new A();
+
+        expect(mocks2.set).toHaveBeenNthCalledWith(1, a1, "a", "a", true);
+        expect(mocks2.set).toHaveBeenNthCalledWith(2, a2, "a", "a", true);
+
+        a1.a = "aaa";
+        a2.a = "bbb";
+
+        expect(mocks2.set).toHaveBeenNthCalledWith(3, a1, "a", "aaa", false);
+        expect(mocks2.set).toHaveBeenNthCalledWith(4, a2, "a", "bbb", false);
+
+        expect(mocks2.set).toHaveBeenCalledTimes(4);
+        expect(mocks1.set).toHaveBeenCalledTimes(0);
+      });
+
+      it("get", () => {
+        const mocks1 = createMocks<A, Required<IInterceptableOptions<A>>>();
+        const mocks2 = createMocks<A, Required<IInterceptableOptions<A>>>();
+
+        @interceptable(mocks2)
+        @interceptable(mocks1)
+        class A {
+          constructor(private a: string) {}
+
+          public internallyAccessA() {
+            // tslint:disable-next-line: no-unused-expression
+            this.a;
+          }
+        }
+
+        const a1 = new A("a1");
+        const a2 = new A("a2");
+
+        expect(mocks1.get).toHaveBeenCalledTimes(0);
+        expect(mocks2.get).toHaveBeenCalledTimes(0);
+
+        a1.internallyAccessA();
+
+        expect(mocks1.get).toHaveBeenCalledTimes(0);
+        expect(mocks2.get).toHaveBeenCalledTimes(2);
+
+        a2.internallyAccessA();
+
+        expect(mocks1.get).toHaveBeenCalledTimes(0);
+        expect(mocks2.get).toHaveBeenCalledTimes(4);
+
+        expect(mocks2.get).toHaveBeenNthCalledWith(1, a1, "internallyAccessA", expect.anything(), false); // prettier-ignore
+        expect(mocks2.get).toHaveBeenNthCalledWith(2, a1, "a", "a1", true);
+        expect(mocks2.get).toHaveBeenNthCalledWith(3, a2, "internallyAccessA", expect.anything(), false); // prettier-ignore
+        expect(mocks2.get).toHaveBeenNthCalledWith(4, a2, "a", "a2", true);
+      });
+    });
   });
 
-  it("assigments outside class should cause external set events", () => {
-    const mocks = createMocks<A, Required<IInterceptableOptions<A>>>({});
+  describe("internal/external events", () => {
+    it("assigments inside class constructor should cause internal set events", () => {
+      expect.assertions(4);
 
-    @interceptable(mocks)
-    class A {
-      public a?: number;
-      public b?: string;
-    }
+      const mocks = createMocks<A, Required<IInterceptableOptions<A>>>({});
 
-    const a = new A();
+      @interceptable(mocks)
+      class A {
+        public a: number = 123;
+        public b: string = "bbb";
+        public c: boolean;
 
-    a.a = 123123123;
-    a.b = "abc";
+        public constructor() {
+          this.c = false;
 
-    expect(mocks.set).toHaveBeenNthCalledWith(1, a, "a", 123123123, false);
-    expect(mocks.set).toHaveBeenNthCalledWith(2, a, "b", "abc", false);
-  });
+          /*
+           * This is temporary. Depending if on the chosen construction option context type
+           * at this stage can be either null or internal.
+           */
 
-  it("assigments inside class method should cause internal set events", () => {
-    expect.assertions(3);
-
-    const mocks = createMocks<A, Required<IInterceptableOptions<A>>>({});
-
-    @interceptable(mocks)
-    class A {
-      public a?: number;
-      public b?: string;
-
-      public setValues(a: number, b: string): void {
-        this.a = a;
-        this.b = b;
-
-        expect(InterceptableContext.getContextType(this)).toBe(InterceptableContextType.Internal);
+          const type = InterceptableContext.getContextType(this);
+          expect(type === InterceptableContextType.Internal || type === null).toBe(true);
+        }
       }
-    }
 
-    const a = new A();
+      const a = new A();
 
-    a.setValues(123, "bbb");
+      expect(mocks.set).toHaveBeenNthCalledWith(1, a, "a", 123, true);
+      expect(mocks.set).toHaveBeenNthCalledWith(2, a, "b", "bbb", true);
+      expect(mocks.set).toHaveBeenNthCalledWith(3, a, "c", false, true);
+    });
 
-    expect(mocks.set).toHaveBeenNthCalledWith(1, a, "a", 123, true);
-    expect(mocks.set).toHaveBeenNthCalledWith(2, a, "b", "bbb", true);
-  });
+    it("assigments inside class methods should cause internal set events", () => {
+      expect.assertions(3);
 
-  it("assigments inside async class method should cause internal set events", async () => {
-    expect.assertions(4);
+      const mocks = createMocks<A, Required<IInterceptableOptions<A>>>({});
 
-    const mocks = createMocks<A, Required<IInterceptableOptions<A>>>({});
+      @interceptable(mocks)
+      class A {
+        public a?: number;
+        public b?: string;
 
-    @interceptable(mocks)
-    class A {
-      public a?: number;
-      public b?: string;
+        public setValues(a: number, b: string): void {
+          this.a = a;
+          this.b = b;
 
-      public async setValues(a: number, b: string): Promise<void> {
-        await sleep(50);
-        this.a = a;
-        await sleep(50);
-        this.b = b;
-        await sleep(50);
-
-        expect(InterceptableContext.getContextType(this)).toBe(InterceptableContextType.Internal);
+          expect(InterceptableContext.getContextType(this)).toBe(InterceptableContextType.Internal);
+        }
       }
-    }
 
-    const a = new A();
+      const a = new A();
 
-    await expect(a.setValues(123, "bbb")).resolves.not.toThrow();
+      a.setValues(123, "bbb");
 
-    expect(mocks.set).toHaveBeenNthCalledWith(1, a, "a", 123, true);
-    expect(mocks.set).toHaveBeenNthCalledWith(2, a, "b", "bbb", true);
-  });
+      expect(mocks.set).toHaveBeenNthCalledWith(1, a, "a", 123, true);
+      expect(mocks.set).toHaveBeenNthCalledWith(2, a, "b", "bbb", true);
+    });
 
-  it("setting functions as class properties from constructor should always raise an error", () => {
-    const mocks = createMocks<
-      ClassWithNormalFN,
-      Required<IInterceptableOptions<ClassWithNormalFN>>
-    >({});
+    it("assigments inside async class methods should cause internal set events", async () => {
+      expect.assertions(4);
 
-    @interceptable(mocks)
-    class ClassWithNormalFN {
-      // tslint:disable-next-line: no-empty
-      public setValuesNormal = function(): void {};
-    }
+      const mocks = createMocks<A, Required<IInterceptableOptions<A>>>({});
 
-    @interceptable(mocks)
-    class ClassWithArrowFN {
-      // tslint:disable-next-line: no-empty
-      public setValuesArrow = (): void => {};
-    }
+      @interceptable(mocks)
+      class A {
+        public a?: number;
+        public b?: string;
 
-    expect(() => new ClassWithArrowFN()).toThrowError();
-    expect(() => new ClassWithArrowFN()).toThrowError();
-  });
+        public async setValues(a: number, b: string): Promise<void> {
+          await sleep(50);
+          this.a = a;
+          await sleep(50);
+          this.b = b;
+          await sleep(50);
 
-  it("setting functions as class properties dynamically should be only allowed if `allowDynamicFunctionAssigments` has been provided, else raise error", () => {
-    const mocks = createMocks<ADisallowed, Required<IInterceptableOptions<ADisallowed>>>({});
-
-    @interceptable(mocks)
-    class ADisallowed {
-      public normalFunction?: Function;
-      public arrowFunction?: Function;
-    }
-
-    @interceptable({
-      ...mocks,
-      allowDynamicFunctionAssigments: true
-    })
-    class AAllowed {
-      public normalFunction?: Function;
-      public arrowFunction?: Function;
-    }
-
-    const aDisallowed = new ADisallowed();
-
-    expect(() => {
-      // tslint:disable-next-line: no-empty
-      aDisallowed.arrowFunction = () => {};
-    }).toThrowError();
-    expect(() => {
-      // tslint:disable-next-line: no-empty
-      aDisallowed.normalFunction = function() {};
-    }).toThrowError();
-
-    const aAllowed = new AAllowed();
-
-    expect(() => {
-      // tslint:disable-next-line: no-empty
-      aAllowed.arrowFunction = () => {};
-    }).not.toThrowError();
-    expect(() => {
-      // tslint:disable-next-line: no-empty
-      aAllowed.normalFunction = function() {};
-    }).not.toThrowError();
-  });
-
-  it("should work with inheritance", async () => {
-    expect.assertions(22);
-
-    const mocksChild1 = createMocks<Parent, Required<IInterceptableOptions<Parent>>>({});
-    const mocksChild1Child1 = createMocks<Parent, Required<IInterceptableOptions<Parent>>>({});
-
-    abstract class Parent {
-      public parentValue: number = 123;
-      public a?: number;
-      public b?: string;
-    }
-
-    @interceptable(mocksChild1)
-    class Child1 extends Parent {
-      public async setValues(a: number, b: string): Promise<void> {
-        await sleep(50);
-        this.a = a;
-        await sleep(50);
-        this.b = b;
-        await sleep(50);
-
-        expect(InterceptableContext.getContextType(this)).toBe(InterceptableContextType.Internal);
+          expect(InterceptableContext.getContextType(this)).toBe(InterceptableContextType.Internal);
+        }
       }
-    }
 
-    @interceptable(mocksChild1Child1)
-    class Child1Child1 extends Child1 {
-      public c: number = 666;
-      public d?: boolean;
+      const a = new A();
 
-      public async setValuesChild1Child1(
-        a: number,
-        b: string,
-        c: number,
-        d: boolean
-      ): Promise<void> {
-        await super.setValues(a, b);
+      await expect(a.setValues(123, "bbb")).resolves.not.toThrow();
 
-        this.c = c;
-        await sleep(50);
-        this.d = d;
-        await sleep(50);
+      expect(mocks.set).toHaveBeenNthCalledWith(1, a, "a", 123, true);
+      expect(mocks.set).toHaveBeenNthCalledWith(2, a, "b", "bbb", true);
+    });
 
-        expect(InterceptableContext.getContextType(this)).toBe(InterceptableContextType.Internal);
+    it("delayed (from timers, nested promises etc) assigments inside class methods should still cause iternal events", async () => {
+      expect.assertions(8);
+
+      const mocks = createMocks<A, Required<IInterceptableOptions<A>>>({});
+
+      @interceptable(mocks)
+      class A {
+        public a?: number;
+        public b?: string;
+
+        public setValuesInsidePromise(a: number, b: string): Promise<void> {
+          return new Promise<void>(async resolve => {
+            await sleep(50);
+            this.a = a;
+            await sleep(50);
+            this.b = b;
+            await sleep(50);
+
+            expect(InterceptableContext.getContextType(this)).toBe(
+              InterceptableContextType.Internal
+            );
+
+            return resolve();
+          });
+        }
+
+        public setValuesInsideTimer(a: number, b: string): void {
+          setTimeout(() => {
+            this.a = a;
+            this.b = b;
+
+            expect(InterceptableContext.getContextType(this)).toBe(
+              InterceptableContextType.Internal
+            );
+          }, 10);
+        }
       }
-    }
 
-    const child1 = new Child1();
+      const a = new A();
 
-    expect(child1).toBeInstanceOf(Object);
-    expect(child1).toBeInstanceOf(Parent);
-    expect(child1).toBeInstanceOf(Child1);
+      await expect(a.setValuesInsidePromise(123, "bbb")).resolves.not.toThrow();
 
-    await expect(child1.setValues(123, "bbb")).resolves.not.toThrow();
+      expect(mocks.set).toHaveBeenNthCalledWith(1, a, "a", 123, true);
+      expect(mocks.set).toHaveBeenNthCalledWith(2, a, "b", "bbb", true);
 
-    expect(mocksChild1.set).toHaveBeenNthCalledWith(1, child1, "parentValue", 123, true);
-    expect(mocksChild1.set).toHaveBeenNthCalledWith(2, child1, "a", 123, true);
-    expect(mocksChild1.set).toHaveBeenNthCalledWith(3, child1, "b", "bbb", true);
+      expect(a.setValuesInsideTimer(666, "abc")).toBe(undefined);
 
-    expect(mocksChild1.set).toHaveBeenCalledTimes(3);
+      await sleep(50);
 
-    const child1Child1 = new Child1Child1();
+      expect(mocks.set).toHaveBeenNthCalledWith(3, a, "a", 666, true);
+      expect(mocks.set).toHaveBeenNthCalledWith(4, a, "b", "abc", true);
+    });
 
-    expect(child1Child1).toBeInstanceOf(Object);
-    expect(child1Child1).toBeInstanceOf(Parent);
-    expect(child1Child1).toBeInstanceOf(Child1);
-    expect(child1Child1).toBeInstanceOf(Child1Child1);
+    it("assigments outside class should cause external set events", () => {
+      const mocks = createMocks<A, Required<IInterceptableOptions<A>>>({});
 
-    await expect(child1Child1.setValuesChild1Child1(123, "bbb", 999, true)).resolves.not.toThrow();
+      @interceptable(mocks)
+      class A {
+        public a?: number;
+        public b?: string;
+      }
 
-    expect(mocksChild1Child1.set).toHaveBeenNthCalledWith(
-      1,
-      child1Child1,
-      "parentValue",
-      123,
-      true
-    );
-    expect(mocksChild1Child1.set).toHaveBeenNthCalledWith(2, child1Child1, "c", 666, true);
-    expect(mocksChild1Child1.set).toHaveBeenNthCalledWith(3, child1Child1, "a", 123, true);
-    expect(mocksChild1Child1.set).toHaveBeenNthCalledWith(4, child1Child1, "b", "bbb", true);
-    expect(mocksChild1Child1.set).toHaveBeenNthCalledWith(5, child1Child1, "c", 999, true);
-    expect(mocksChild1Child1.set).toHaveBeenNthCalledWith(6, child1Child1, "d", true, true);
+      const a = new A();
+
+      a.a = 123123123;
+      a.b = "abc";
+
+      expect(mocks.set).toHaveBeenNthCalledWith(1, a, "a", 123123123, false);
+      expect(mocks.set).toHaveBeenNthCalledWith(2, a, "b", "abc", false);
+    });
+  });
+
+  describe("functions as class properties", () => {
+    it("setting functions as class properties from constructor should always raise an error", () => {
+      const mocks = createMocks<
+        ClassWithNormalFN,
+        Required<IInterceptableOptions<ClassWithNormalFN>>
+      >({});
+
+      @interceptable(mocks)
+      class ClassWithNormalFN {
+        // tslint:disable-next-line: no-empty
+        public setValuesNormal = function(): void {};
+      }
+
+      @interceptable(mocks)
+      class ClassWithArrowFN {
+        // tslint:disable-next-line: no-empty
+        public setValuesArrow = (): void => {};
+      }
+
+      expect(() => new ClassWithArrowFN()).toThrowError();
+      expect(() => new ClassWithArrowFN()).toThrowError();
+    });
+
+    it("setting functions as class properties dynamically should only be allowed if `allowDynamicFunctionAssigments` has been provided, else raise error", () => {
+      const mocks = createMocks<ADisallowed, Required<IInterceptableOptions<ADisallowed>>>({});
+
+      @interceptable(mocks)
+      class ADisallowed {
+        public normalFunction?: Function;
+        public arrowFunction?: Function;
+      }
+
+      @interceptable({
+        ...mocks,
+        allowDynamicFunctionAssigments: true
+      })
+      class AAllowed {
+        public normalFunction?: Function;
+        public arrowFunction?: Function;
+      }
+
+      const aDisallowed = new ADisallowed();
+
+      expect(() => {
+        // tslint:disable-next-line: no-empty
+        aDisallowed.arrowFunction = () => {};
+      }).toThrowError();
+      expect(() => {
+        // tslint:disable-next-line: no-empty
+        aDisallowed.normalFunction = function() {};
+      }).toThrowError();
+
+      const aAllowed = new AAllowed();
+
+      expect(() => {
+        // tslint:disable-next-line: no-empty
+        aAllowed.arrowFunction = () => {};
+      }).not.toThrowError();
+      expect(() => {
+        // tslint:disable-next-line: no-empty
+        aAllowed.normalFunction = function() {};
+      }).not.toThrowError();
+    });
+  });
+
+  describe("inheritenance", () => {
+    describe("parent(interceptable) => child(non interceptable)", () => {
+      it("should work correctly with instanceof operator", () => {
+        const parentMocks = createMocks<Parent, Required<IInterceptableOptions<Parent>>>();
+
+        @interceptable(parentMocks)
+        class Parent {
+          public p: string = "parent";
+        }
+
+        class Child extends Parent {
+          public c: string = "child";
+        }
+
+        const p = new Parent();
+        const c = new Child();
+
+        expect(p).toBeInstanceOf(Object);
+        expect(p).toBeInstanceOf(Parent);
+        expect(p).not.toBeInstanceOf(Child);
+
+        expect(c).toBeInstanceOf(Object);
+        expect(c).toBeInstanceOf(Parent);
+        expect(c).toBeInstanceOf(Child);
+      });
+
+      it("intercetable metadata from parent should not affect children", () => {
+        const parentMocks = createMocks<Parent, Required<IInterceptableOptions<Parent>>>();
+
+        @interceptable(parentMocks)
+        class Parent {
+          public p: string = "parent";
+        }
+
+        class Child extends Parent {
+          public c: string = "child";
+        }
+
+        const p = new Parent();
+        expect(parentMocks.afterConstruct).toHaveBeenNthCalledWith(1, p);
+
+        const c = new Child();
+
+        expect(parentMocks.afterConstruct).toHaveBeenCalledTimes(1);
+      });
+    });
+
+    describe("parent(interceptable) => child(interceptable)", () => {
+      it("should work correctly with instanceof operator", () => {
+        const parentMocks = createMocks<Parent, Required<IInterceptableOptions<Parent>>>();
+        const childMocks = createMocks<Child, Required<IInterceptableOptions<Child>>>();
+
+        @interceptable(parentMocks)
+        class Parent {
+          public p: string = "parent";
+        }
+
+        @interceptable(childMocks)
+        class Child extends Parent {
+          public c: string = "child";
+        }
+
+        const p = new Parent();
+        const c = new Child();
+
+        expect(p).toBeInstanceOf(Object);
+        expect(p).toBeInstanceOf(Parent);
+        expect(p).not.toBeInstanceOf(Child);
+
+        expect(c).toBeInstanceOf(Object);
+        expect(c).toBeInstanceOf(Parent);
+        expect(c).toBeInstanceOf(Child);
+      });
+
+      it("intercetable metadata from parent should not affect children", () => {
+        const parentMocks = createMocks<Parent, Required<IInterceptableOptions<Parent>>>();
+        const childMocks = createMocks<Child, Required<IInterceptableOptions<Child>>>();
+
+        @interceptable(parentMocks)
+        class Parent {
+          public p: string = "parent";
+        }
+
+        @interceptable(childMocks)
+        class Child extends Parent {
+          public c: string = "child";
+        }
+
+        const p = new Parent();
+        expect(parentMocks.afterConstruct).toHaveBeenNthCalledWith(1, p);
+
+        const c = new Child();
+
+        expect(parentMocks.afterConstruct).toHaveBeenCalledTimes(1);
+        expect(childMocks.afterConstruct).toHaveBeenNthCalledWith(1, c);
+
+        expect(parentMocks.set).toHaveBeenNthCalledWith(1, p, "p", "parent", true);
+        p.p = "PPP";
+        expect(parentMocks.set).toHaveBeenNthCalledWith(2, p, "p", "PPP", false);
+
+        expect(childMocks.set).toHaveBeenNthCalledWith(1, c, "p", "parent", true);
+        expect(childMocks.set).toHaveBeenNthCalledWith(2, c, "c", "child", true);
+        c.p = "PPP";
+        c.c = "CCC";
+        expect(childMocks.set).toHaveBeenNthCalledWith(3, c, "p", "PPP", false);
+        expect(childMocks.set).toHaveBeenNthCalledWith(4, c, "c", "CCC", false);
+
+        expect(parentMocks.set).toHaveBeenCalledTimes(2);
+        expect(childMocks.set).toHaveBeenCalledTimes(4);
+      });
+    });
+
+    describe("parent(non interceptable) => child(interceptable)", () => {
+      it("should work correctly with instanceof operator", () => {
+        const childMocks = createMocks<Parent, Required<IInterceptableOptions<Parent>>>();
+
+        class Parent {
+          public p: string = "parent";
+        }
+
+        @interceptable(childMocks)
+        class Child extends Parent {
+          public c: string = "child";
+        }
+
+        const p = new Parent();
+        const c = new Child();
+
+        expect(p).toBeInstanceOf(Object);
+        expect(p).toBeInstanceOf(Parent);
+        expect(p).not.toBeInstanceOf(Child);
+
+        expect(c).toBeInstanceOf(Object);
+        expect(c).toBeInstanceOf(Parent);
+        expect(c).toBeInstanceOf(Child);
+      });
+
+      it("intercetable metadata from children should not affect parent", () => {
+        const childMocks = createMocks<Parent, Required<IInterceptableOptions<Parent>>>();
+
+        class Parent {
+          public p: string = "parent";
+        }
+
+        @interceptable(childMocks)
+        class Child extends Parent {
+          public c: string = "child";
+        }
+
+        const p = new Parent();
+        expect(childMocks.afterConstruct).not.toHaveBeenCalled();
+        p.p = "adasda";
+        expect(childMocks.afterConstruct).not.toHaveBeenCalled();
+
+        const c = new Child();
+
+        expect(childMocks.afterConstruct).toHaveBeenNthCalledWith(1, c);
+        expect(childMocks.afterConstruct).toHaveBeenCalledTimes(1);
+
+        expect(childMocks.set).toHaveBeenNthCalledWith(1, c, "p", "parent", true);
+        expect(childMocks.set).toHaveBeenNthCalledWith(2, c, "c", "child", true);
+        c.p = "PPP";
+        c.c = "CCC";
+
+        expect(childMocks.set).toHaveBeenNthCalledWith(3, c, "p", "PPP", false);
+        expect(childMocks.set).toHaveBeenNthCalledWith(4, c, "c", "CCC", false);
+
+        expect(childMocks.set).toHaveBeenCalledTimes(4);
+      });
+    });
   });
 });

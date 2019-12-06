@@ -5,8 +5,9 @@ export interface IInterceptableOptions<
   K extends keyof T = keyof T,
   V extends T[K] = T[K]
 > {
-  set?: (target: T, key: K, value: V, isInternal: boolean) => boolean;
-  get?: (target: T, key: K, suggestedValue: V, isInternal: boolean) => V;
+  set?: (original: T, key: K, value: V, isInternal: boolean) => boolean;
+  get?: (original: T, key: K, suggestedValue: V, isInternal: boolean) => V;
+  afterConstruct?: (original: T) => void;
   allowDynamicFunctionAssigments?: boolean;
 }
 
@@ -88,8 +89,7 @@ export const interceptable = <
         set: (target: I, key: K, value: V) => onSet(key, value, false)
       });
 
-      InterceptableContext.setContextType(internalContext, InterceptableContextType.Internal);
-      InterceptableContext.setContextType(externalContext, InterceptableContextType.External);
+      InterceptableContext.setupContexts(original, internalContext, externalContext);
 
       // Option #1 step 2, @CAVEAT: symbols can "arrive" in different order.
       [
@@ -99,6 +99,10 @@ export const interceptable = <
 
       // // Option #2 step 2
       // ProxiedClass.prototype.constructor.call(internalContext, args);
+
+      if (options.afterConstruct) {
+        options.afterConstruct(original);
+      }
 
       return externalContext;
     }

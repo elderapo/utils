@@ -1,6 +1,6 @@
+import { sleep } from "../../timers";
 import { IInterceptableOptions, interceptable } from "./interceptable";
 import { InterceptableContext, InterceptableContextType } from "./InterceptableContext";
-import { sleep } from "../../timers";
 
 /*
  *
@@ -237,5 +237,89 @@ describe("interceptable", () => {
       // tslint:disable-next-line: no-empty
       aAllowed.normalFunction = function() {};
     }).not.toThrowError();
+  });
+
+  it("should work with inheritance", async () => {
+    expect.assertions(22);
+
+    const mocksChild1 = createMocks<Parent, Required<IInterceptableOptions<Parent>>>({});
+    const mocksChild1Child1 = createMocks<Parent, Required<IInterceptableOptions<Parent>>>({});
+
+    abstract class Parent {
+      public parentValue: number = 123;
+      public a?: number;
+      public b?: string;
+    }
+
+    @interceptable(mocksChild1)
+    class Child1 extends Parent {
+      public async setValues(a: number, b: string): Promise<void> {
+        await sleep(50);
+        this.a = a;
+        await sleep(50);
+        this.b = b;
+        await sleep(50);
+
+        expect(InterceptableContext.getContextType(this)).toBe(InterceptableContextType.Internal);
+      }
+    }
+
+    @interceptable(mocksChild1Child1)
+    class Child1Child1 extends Child1 {
+      public c: number = 666;
+      public d?: boolean;
+
+      public async setValuesChild1Child1(
+        a: number,
+        b: string,
+        c: number,
+        d: boolean
+      ): Promise<void> {
+        await super.setValues(a, b);
+
+        this.c = c;
+        await sleep(50);
+        this.d = d;
+        await sleep(50);
+
+        expect(InterceptableContext.getContextType(this)).toBe(InterceptableContextType.Internal);
+      }
+    }
+
+    const child1 = new Child1();
+
+    expect(child1).toBeInstanceOf(Object);
+    expect(child1).toBeInstanceOf(Parent);
+    expect(child1).toBeInstanceOf(Child1);
+
+    await expect(child1.setValues(123, "bbb")).resolves.not.toThrow();
+
+    expect(mocksChild1.set).toHaveBeenNthCalledWith(1, child1, "parentValue", 123, true);
+    expect(mocksChild1.set).toHaveBeenNthCalledWith(2, child1, "a", 123, true);
+    expect(mocksChild1.set).toHaveBeenNthCalledWith(3, child1, "b", "bbb", true);
+
+    expect(mocksChild1.set).toHaveBeenCalledTimes(3);
+
+    const child1Child1 = new Child1Child1();
+
+    expect(child1Child1).toBeInstanceOf(Object);
+    expect(child1Child1).toBeInstanceOf(Parent);
+    expect(child1Child1).toBeInstanceOf(Child1);
+    expect(child1Child1).toBeInstanceOf(Child1Child1);
+
+    await expect(child1Child1.setValuesChild1Child1(123, "bbb", 999, true)).resolves.not.toThrow();
+
+    expect(mocksChild1Child1.set).toHaveBeenNthCalledWith(
+      1,
+      child1Child1,
+      "parentValue",
+      123,
+      true
+    );
+    expect(mocksChild1Child1.set).toHaveBeenNthCalledWith(2, child1Child1, "c", 666, true);
+    expect(mocksChild1Child1.set).toHaveBeenNthCalledWith(3, child1Child1, "a", 123, true);
+    expect(mocksChild1Child1.set).toHaveBeenNthCalledWith(4, child1Child1, "b", "bbb", true);
+    expect(mocksChild1Child1.set).toHaveBeenNthCalledWith(5, child1Child1, "c", 999, true);
+    expect(mocksChild1Child1.set).toHaveBeenNthCalledWith(6, child1Child1, "d", true, true);
   });
 });

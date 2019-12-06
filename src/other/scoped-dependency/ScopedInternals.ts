@@ -54,12 +54,14 @@ export class ScopedInternals {
 
     if (this.hasParent(child)) {
       if (this.getParent(child) === parent) {
-        /*
-            In case of inheritance base class can already be decorated
-            with `scoped`. In that case it's unnesesery for child class
-            to be decorated with `scope` but should be allowed in case
-            someone needs to alter scope name or add `onInstanceCreation` hook.
-        */
+        /**
+         *
+         * In case of inheritance base class can already be decorated
+         * with `scoped`. In that case it's unnesesery for child class
+         * to be decorated with `scope` but should be allowed in case
+         * someone needs to alter scope name or add `onInstanceCreation` hook.
+         *
+         */
 
         return;
       }

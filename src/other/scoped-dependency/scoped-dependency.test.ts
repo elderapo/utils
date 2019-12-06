@@ -542,4 +542,43 @@ describe("scoped-dependency", () => {
       ]);
     });
   });
+
+  describe.only("example", () => {
+    it("tmp", () => {
+      @scoped()
+      class C {
+        public constructor() {
+          console.log({ this: this });
+          console.log("c", listScopes(this));
+        }
+      }
+
+      @scoped()
+      class B {
+        public c = new C();
+
+        public constructor() {
+          console.log("b", listScopes(this));
+        }
+      }
+
+      @scoped()
+      class A {
+        public b = new B();
+
+        public constructor() {
+          console.log("a", listScopes(this));
+        }
+      }
+
+      const a = new A();
+      // console.log(a);
+
+      // a.doSomething();
+      // a.b.doSomething();
+      // a.b.c.doSomething();
+
+      // expect(1).toBe(0);
+    });
+  });
 });

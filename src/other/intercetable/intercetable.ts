@@ -7,7 +7,12 @@ export interface IIntercetableOptions<
 > {
   set?: (target: T, key: K, value: V, isInternal: boolean) => boolean;
   get?: (target: T, key: K, suggestedValue: V, isInternal: boolean) => V;
+  allowDynamicFunctionAssigments?: boolean;
 }
+
+const defaultInterceptableOptions = {
+  allowDynamicFunctionAssigments: false
+};
 
 export const interceptable = <
   C extends new (...args: any[]) => any,
@@ -15,8 +20,10 @@ export const interceptable = <
   K extends keyof I,
   V extends I[K]
 >(
-  options: IIntercetableOptions<I> = {}
+  _options: IIntercetableOptions<I> = {}
 ) => (OriginalClass: C) => {
+  const options = Object.assign({}, defaultInterceptableOptions, _options);
+
   return new Proxy(OriginalClass, {
     construct(ProxiedClass: C, args: any) {
       /*
@@ -32,9 +39,16 @@ export const interceptable = <
       // const original: I = Object.create(ProxiedClass.prototype); // # Option #2 step 1
 
       const onSet = (key: K, newValue: V, isInternal: boolean): boolean => {
-        // @IDEA: Maybe just disallow setting functions as class properites from constructor?
         if (typeof newValue === "function") {
-          throw new Error("Cannot set function as class property. Use methods instead!");
+          if (isInternal) {
+            throw new Error("Function class properties are not allowed. Use methods instead!");
+          }
+
+          if (!options.allowDynamicFunctionAssigments) {
+            throw new Error(
+              `Assigning functions as class properties is not allowed by default. You can enable it with "allowDynamicFunctionAssigments".`
+            );
+          }
         }
 
         if (options.set) {
@@ -48,9 +62,12 @@ export const interceptable = <
       const onGet = (key: K, isInternal: boolean): V => {
         const targetValue = original[key];
 
-        const suggestedValue =
+        const isMethod =
           // tslint:disable-next-line: strict-type-predicates
-          typeof targetValue === "function" ? targetValue.bind(internalContext) : targetValue;
+          typeof original[key] === "function" &&
+          typeof original?.constructor?.prototype?.[key] === "function";
+
+        const suggestedValue = isMethod ? targetValue.bind(internalContext) : targetValue;
 
         if (options.get) {
           return options.get(original, key, suggestedValue, isInternal);
@@ -75,9 +92,10 @@ export const interceptable = <
       IntercetableContext.setContextType(externalContext, IntercetableContextType.External);
 
       // Option #1 step 2, @CAVEAT: symbols can "arrive" in different order.
-      [...Object.getOwnPropertyNames(original), ...Object.getOwnPropertySymbols(original)].forEach(
-        key => onSet(key as K, original[key], true)
-      );
+      [
+        ...Object.getOwnPropertyNames(original),
+        ...Object.getOwnPropertySymbols(original)
+      ].forEach(key => onSet(key as K, original[key], true));
 
       // // Option #2 step 2
       // ProxiedClass.prototype.constructor.call(internalContext, args);

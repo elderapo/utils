@@ -145,7 +145,7 @@ describe("intercetable", () => {
     expect(mocks.set).toHaveBeenNthCalledWith(2, a, "b", "bbb", true);
   });
 
-  it("setting functions as class properties should cause an error", () => {
+  it("setting functions as class properties from constructor should always raise an error", () => {
     const mocks = createMocks<ClassWithNormalFN, Required<IIntercetableOptions<ClassWithNormalFN>>>(
       {}
     );
@@ -166,55 +166,44 @@ describe("intercetable", () => {
     expect(() => new ClassWithArrowFN()).toThrowError();
   });
 
-  it.skip("assigments inside class property function should cause internal set events", () => {
-    const mocks = createMocks<A, Required<IIntercetableOptions<A>>>({});
+  it("setting functions as class properties dynamically should be only allowed if `allowDynamicFunctionAssigments` has been provided, else raise error", () => {
+    const mocks = createMocks<ADisallowed, Required<IIntercetableOptions<ADisallowed>>>({});
 
     @interceptable(mocks)
-    class A {
-      public a?: number;
-      public b?: string;
-
-      public setValuesNormal = function(a: number, b: string): void {
-        // @ts-ignore
-        const that = this;
-        that.a = a;
-        that.b = b;
-
-        expect(IntercetableContext.getContextType(that)).toBe(IntercetableContextType.Internal);
-      };
-
-      public setValuesArrow = (a: number, b: string): void => {
-        this.a = a;
-        this.b = b;
-
-        expect(IntercetableContext.getContextType(this)).toBe(null);
-      };
+    class ADisallowed {
+      public normalFunction?: Function;
+      public arrowFunction?: Function;
     }
 
-    const a = new A();
+    @interceptable({
+      ...mocks,
+      allowDynamicFunctionAssigments: true
+    })
+    class AAllowed {
+      public normalFunction?: Function;
+      public arrowFunction?: Function;
+    }
 
-    expect(mocks.set).toHaveBeenNthCalledWith(
-      1,
-      expect.anything(),
-      "setValuesNormal",
-      expect.anything(), // bound normal function
-      true
-    );
+    const aDisallowed = new ADisallowed();
 
-    expect(mocks.set).toHaveBeenNthCalledWith(
-      2,
-      expect.anything(),
-      "setValuesArrow",
-      expect.anything(), // bound arrow function ???????
-      true
-    );
+    expect(() => {
+      // tslint:disable-next-line: no-empty
+      aDisallowed.arrowFunction = () => {};
+    }).toThrowError();
+    expect(() => {
+      // tslint:disable-next-line: no-empty
+      aDisallowed.normalFunction = function() {};
+    }).toThrowError();
 
-    a.setValuesNormal(666, "normal");
-    expect(mocks.set).toHaveBeenNthCalledWith(3, expect.anything(), "a", 666, true);
-    expect(mocks.set).toHaveBeenNthCalledWith(4, expect.anything(), "b", "normal", true);
+    const aAllowed = new AAllowed();
 
-    a.setValuesArrow(333, "arrow");
-    expect(mocks.set).toHaveBeenNthCalledWith(5, expect.anything(), "a", 333, true);
-    expect(mocks.set).toHaveBeenNthCalledWith(6, expect.anything(), "b", "arrow", true);
+    expect(() => {
+      // tslint:disable-next-line: no-empty
+      aAllowed.arrowFunction = () => {};
+    }).not.toThrowError();
+    expect(() => {
+      // tslint:disable-next-line: no-empty
+      aAllowed.normalFunction = function() {};
+    }).not.toThrowError();
   });
 });

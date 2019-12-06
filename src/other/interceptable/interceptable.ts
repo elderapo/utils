@@ -10,8 +10,8 @@ export interface IInterceptableOptions<
   set?: (original: T, key: K, value: V, isInternal: boolean) => void;
   get?: (original: T, key: K, suggestedValue: V, isInternal: boolean) => V;
 
-  defineProperty?: (target: T, p: K, descriptor: PropertyDescriptor, isInternal: boolean) => void;
-  deleteProperty?: (target: T, p: K, isInternal: boolean) => void;
+  defineProperty?: (original: T, p: K, descriptor: PropertyDescriptor, isInternal: boolean) => void;
+  deleteProperty?: (original: T, p: K, isInternal: boolean) => void;
 
   allowDynamicFunctionAssigments?: boolean;
 }
@@ -93,6 +93,7 @@ export const interceptable = <
           return true;
         }
 
+        Object.defineProperty(original, key, descriptor);
         return true;
       };
 
@@ -101,6 +102,8 @@ export const interceptable = <
           options.deleteProperty(original, key, isInternal);
           return true;
         }
+
+        delete original[key];
         return true;
       };
 
@@ -128,6 +131,20 @@ export const interceptable = <
         ...Object.getOwnPropertyNames(original),
         ...Object.getOwnPropertySymbols(original)
       ].forEach(key => onSet(key as K, original[key], true));
+
+      const descriptors = Object.getOwnPropertyDescriptors(OriginalClass.prototype);
+      Object.keys(descriptors).forEach(key => {
+        const value = descriptors[key];
+
+        const objectPropertyDescriptor = Object.getOwnPropertyDescriptor(Object.prototype, key);
+
+        if (objectPropertyDescriptor) {
+          // For example constructor. Not sure if this is required for lets leave it here for now.
+          return;
+        }
+
+        onDefineProperty(key as K, value, true);
+      });
 
       if (options.afterConstruct) {
         options.afterConstruct(original);

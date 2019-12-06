@@ -2,15 +2,6 @@ import { sleep } from "../../timers";
 import { IInterceptableOptions, interceptable } from "./interceptable";
 import { InterceptableContext, InterceptableContextType } from "./InterceptableContext";
 
-/*
- *
- * @TODO:
- * - Add `Object.defineProperty(...)` tests.
- * - Add getter/setters tests.
- * - Add support for other "proxable" actions (on delete, initialize?).
- *
- */
-
 describe("interceptable", () => {
   const createMocks = <T extends Object, R extends Required<IInterceptableOptions<T>>>(
     options: {
@@ -63,6 +54,60 @@ describe("interceptable", () => {
   };
 
   describe("basic functionality", () => {
+    it("shouldn't affect object behaviour if options are empty", () => {
+      @interceptable({})
+      class A {
+        public n: number = 100;
+        public nnn!: number;
+
+        public defineNNN(): void {
+          Object.defineProperty(this, "nnn", {
+            writable: true,
+            value: 999
+          });
+        }
+
+        public get numberGetter() {
+          return this.n;
+        }
+
+        public set numberSetter(n: number) {
+          this.n = n;
+        }
+
+        public setNumber(n: number): void {
+          this.n = n;
+        }
+
+        public getNumber(): number {
+          return this.n;
+        }
+
+        public deleteNumber(): void {
+          delete this.n;
+        }
+      }
+
+      const a = new A();
+
+      expect(a.nnn).toBe(undefined);
+      a.defineNNN();
+      expect(a.nnn).toBe(999);
+
+      expect(a.n).toBe(100);
+      a.numberSetter = 123;
+      expect(a.numberGetter).toBe(123);
+
+      delete a.n;
+      expect(a.n).toBe(undefined);
+
+      a.setNumber(666);
+      expect(a.getNumber()).toBe(666);
+
+      a.deleteNumber();
+      expect(a.n).toBe(undefined);
+    });
+
     it("should correctly call options.afterConstruct", () => {
       const mocks = createMocks<A, Required<IInterceptableOptions<A>>>();
 
@@ -131,7 +176,49 @@ describe("interceptable", () => {
       expect(mocks.get).toHaveBeenNthCalledWith(4, a2, "a", "a2", true);
     });
 
-    it.todo("should correctly call options.defineProperty");
+    it("should correctly call options.defineProperty", () => {
+      let override = true;
+
+      const mocks = createMocks<A, Required<IInterceptableOptions<A>>>({
+        onDefineProperty: (target, key, descriptor, isInternal) => {
+          Object.defineProperty(
+            target,
+            key,
+            override
+              ? {
+                  ...descriptor,
+                  get: () => {
+                    return 666;
+                  }
+                }
+              : descriptor
+          );
+        }
+      });
+
+      @interceptable(mocks)
+      class A {
+        public get sampleGetter() {
+          return 123;
+        }
+      }
+
+      const a = new A();
+      expect(a.sampleGetter).toBe(666);
+
+      Object.defineProperty(a, "sampleGetter", {
+        get: () => 123
+      });
+
+      expect(a.sampleGetter).toBe(666);
+      override = false;
+
+      Object.defineProperty(a, "sampleGetter", {
+        get: () => 333
+      });
+
+      expect(a.sampleGetter).toBe(333);
+    });
 
     it("should correctly call options.deleteProperty", () => {
       const mocks = createMocks<A, Required<IInterceptableOptions<A>>>();

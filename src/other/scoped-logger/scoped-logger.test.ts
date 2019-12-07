@@ -2,7 +2,6 @@ import { createScopedLogger } from "./logger";
 import { TestingLoggerTransport, ILoggetTransportHandleItemOptions } from "./transports";
 import { ILogger } from "./types";
 import { LogLevel } from "./LogLevel";
-import { setNamespaceName } from "../dependency-path";
 
 describe("scoped-logger", () => {
   it("simple", () => {
@@ -16,7 +15,7 @@ describe("scoped-logger", () => {
       ]
     });
 
-    @injectScopedLoger
+    @injectScopedLoger()
     class SampleClass {
       protected logger!: ILogger;
 
@@ -33,12 +32,12 @@ describe("scoped-logger", () => {
     expect(handleItem).toHaveBeenNthCalledWith(1, {
       args: ["I am saying: hello..."],
       level: LogLevel.Log,
-      namespaces: [{ id: null, namespace: "SampleClass" }]
+      scopes: [{ id: null, name: "SampleClass" }]
     });
     expect(handleItem).toHaveBeenNthCalledWith(2, {
       args: ["I am saying: world..."],
       level: LogLevel.Log,
-      namespaces: [{ id: null, namespace: "SampleClass" }]
+      scopes: [{ id: null, name: "SampleClass" }]
     });
   });
 
@@ -55,7 +54,7 @@ describe("scoped-logger", () => {
 
     let nextTalkerID = 0;
 
-    @injectScopedLoger
+    @injectScopedLoger()
     class Talker {
       private id = nextTalkerID++;
       protected logger!: ILogger;
@@ -65,7 +64,7 @@ describe("scoped-logger", () => {
       }
     }
 
-    @injectScopedLoger
+    @injectScopedLoger()
     class SampleClass {
       protected logger!: ILogger;
 
@@ -87,22 +86,28 @@ describe("scoped-logger", () => {
     expect(handleItem).toHaveBeenNthCalledWith(1, {
       args: ["Doing something with:", { message1: "hello", message2: "world" }],
       level: LogLevel.Log,
-      namespaces: [{ id: null, namespace: "SampleClass" }]
+      scopes: [{ id: null, name: "SampleClass" }]
     });
     expect(handleItem).toHaveBeenNthCalledWith(2, {
       args: ["I am saying: hello..."],
       level: LogLevel.Warn,
-      namespaces: [{ id: null, namespace: "SampleClass" }, { id: 0, namespace: "Talker" }]
+      scopes: [
+        { id: null, name: "SampleClass" },
+        { id: 0, name: "Talker" }
+      ]
     });
     expect(handleItem).toHaveBeenNthCalledWith(3, {
       args: ["I am saying: world..."],
       level: LogLevel.Warn,
-      namespaces: [{ id: null, namespace: "SampleClass" }, { id: 1, namespace: "Talker" }]
+      scopes: [
+        { id: null, name: "SampleClass" },
+        { id: 1, name: "Talker" }
+      ]
     });
     expect(handleItem).toHaveBeenNthCalledWith(4, {
       args: ["Lazily saying that I am done.", "HEUHUEhueheuhUE"],
       level: LogLevel.Error,
-      namespaces: [{ id: null, namespace: "SampleClass" }]
+      scopes: [{ id: null, name: "SampleClass" }]
     });
   });
 
@@ -119,8 +124,7 @@ describe("scoped-logger", () => {
 
     let nextTalkerID = 0;
 
-    @setNamespaceName("TALKER_YO")
-    @injectScopedLoger
+    @injectScopedLoger({ name: "TALKER_YO" })
     class Talker {
       private id = nextTalkerID++;
       protected logger!: ILogger;
@@ -130,7 +134,7 @@ describe("scoped-logger", () => {
       }
     }
 
-    @injectScopedLoger
+    @injectScopedLoger()
     class SampleClass {
       protected logger!: ILogger;
 
@@ -152,22 +156,28 @@ describe("scoped-logger", () => {
     expect(handleItem).toHaveBeenNthCalledWith(1, {
       args: ["Doing something with:", { message1: "hello", message2: "world" }],
       level: LogLevel.Log,
-      namespaces: [{ id: null, namespace: "SampleClass" }]
+      scopes: [{ id: null, name: "SampleClass" }]
     });
     expect(handleItem).toHaveBeenNthCalledWith(2, {
       args: ["I am saying: hello..."],
       level: LogLevel.Warn,
-      namespaces: [{ id: null, namespace: "SampleClass" }, { id: 0, namespace: "TALKER_YO" }]
+      scopes: [
+        { id: null, name: "SampleClass" },
+        { id: 0, name: "TALKER_YO" }
+      ]
     });
     expect(handleItem).toHaveBeenNthCalledWith(3, {
       args: ["I am saying: world..."],
       level: LogLevel.Warn,
-      namespaces: [{ id: null, namespace: "SampleClass" }, { id: 1, namespace: "TALKER_YO" }]
+      scopes: [
+        { id: null, name: "SampleClass" },
+        { id: 1, name: "TALKER_YO" }
+      ]
     });
     expect(handleItem).toHaveBeenNthCalledWith(4, {
       args: ["Lazily saying that I am done.", "HEUHUEhueheuhUE"],
       level: LogLevel.Error,
-      namespaces: [{ id: null, namespace: "SampleClass" }]
+      scopes: [{ id: null, name: "SampleClass" }]
     });
   });
 
@@ -184,7 +194,7 @@ describe("scoped-logger", () => {
 
     let nextTalkerID = 0;
 
-    @injectScopedLoger
+    @injectScopedLoger()
     abstract class AbstractTalker {
       private id = nextTalkerID++;
       protected logger!: ILogger;
@@ -192,13 +202,14 @@ describe("scoped-logger", () => {
       public abstract say(message: string): void;
     }
 
+    @injectScopedLoger()
     class YellingTalker extends AbstractTalker {
       public say(message: string) {
         this.logger.warn(`I am saying: ${message}...`.toUpperCase());
       }
     }
 
-    @injectScopedLoger
+    @injectScopedLoger()
     class SampleClass {
       protected logger!: ILogger;
 
@@ -220,22 +231,28 @@ describe("scoped-logger", () => {
     expect(handleItem).toHaveBeenNthCalledWith(1, {
       args: ["Doing something with:", { message1: "hello", message2: "world" }],
       level: LogLevel.Log,
-      namespaces: [{ id: null, namespace: "SampleClass" }]
+      scopes: [{ id: null, name: "SampleClass" }]
     });
     expect(handleItem).toHaveBeenNthCalledWith(2, {
       args: ["I AM SAYING: HELLO..."],
       level: LogLevel.Warn,
-      namespaces: [{ id: null, namespace: "SampleClass" }, { id: 0, namespace: "YellingTalker" }]
+      scopes: [
+        { id: null, name: "SampleClass" },
+        { id: 0, name: "YellingTalker" }
+      ]
     });
     expect(handleItem).toHaveBeenNthCalledWith(3, {
       args: ["I AM SAYING: WORLD..."],
       level: LogLevel.Warn,
-      namespaces: [{ id: null, namespace: "SampleClass" }, { id: 1, namespace: "YellingTalker" }]
+      scopes: [
+        { id: null, name: "SampleClass" },
+        { id: 1, name: "YellingTalker" }
+      ]
     });
     expect(handleItem).toHaveBeenNthCalledWith(4, {
       args: ["Lazily saying that I am done.", "HEUHUEhueheuhUE"],
       level: LogLevel.Error,
-      namespaces: [{ id: null, namespace: "SampleClass" }]
+      scopes: [{ id: null, name: "SampleClass" }]
     });
   });
 });

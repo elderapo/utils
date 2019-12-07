@@ -1,5 +1,4 @@
-import { ClassType } from "../../../types";
-import { getNamespacesList, registerDependencyPath } from "../../dependency-path";
+import { listScopes, scoped } from "../../scoped-dependency";
 import { LogLevel } from "../LogLevel";
 import { ILoggerTransport } from "../transports";
 import { LogFunctionArguments, LogFunctionLazyArgument } from "../types";
@@ -7,6 +6,10 @@ import { InjectableLogger } from "./InjectableLogger";
 
 export interface IScopedLogerOptions {
   transports: ILoggerTransport[];
+}
+
+export interface IInjectScopedLoggerDecoratorOptions {
+  name?: string;
 }
 
 export class ScopedLoger {
@@ -17,7 +20,7 @@ export class ScopedLoger {
     args: LogFunctionArguments | LogFunctionLazyArgument,
     target: Object
   ): void {
-    const namespaces = getNamespacesList(target);
+    const scopes = listScopes(target);
 
     // middleware/filter?
 
@@ -27,7 +30,7 @@ export class ScopedLoger {
       transport.handleItem({
         level,
         args: finalArgs,
-        namespaces
+        scopes: scopes
       })
     );
   }
@@ -40,14 +43,17 @@ export class ScopedLoger {
     return args;
   }
 
-  public injectScopedLoggerDecorator = (cstr: any) => {
-    return registerDependencyPath({
+  public injectScopedLoggerDecorator = (options: IInjectScopedLoggerDecoratorOptions = {}) => (
+    cstr: any
+  ) => {
+    return scoped({
+      name: options.name,
       onInstanceCreation: target => {
         const localLogger = new InjectableLogger({
           handleLogItem: (type, args) => this.handleLogItemOnTarget(type, args, target)
         });
 
-        target["logger"] = localLogger;
+        (target as any)["logger"] = localLogger;
       }
     })(cstr);
   };

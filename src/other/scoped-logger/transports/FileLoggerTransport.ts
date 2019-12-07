@@ -28,12 +28,12 @@ export class FileLoggerTransport implements ILoggerTransport {
     }
   }
 
-  public handleItem({ level, namespaces, args }: ILoggetTransportHandleItemOptions): void {
+  public handleItem({ level, scopes, args }: ILoggetTransportHandleItemOptions): void {
     const serialized = jsonStringifySafe(
       {
         level,
         time: new Date(),
-        scope: namespaces.map(item => `${item.namespace}(${item.id})`).join(":"),
+        scope: scopes.map(scope => `${scope.name}(${scope.id})`).join(":"),
         args
       },
       (name, value) => {

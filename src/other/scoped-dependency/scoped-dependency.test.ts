@@ -21,7 +21,9 @@ describe("scoped-dependency", () => {
   describe("scoped", () => {
     it("should work with a single class", () => {
       @scoped()
-      class A {}
+      class A {
+        public something: number = 123;
+      }
 
       expect(listScopes(new A())).toMatchObject([{ id: null, name: "A" }]);
     });
@@ -151,20 +153,6 @@ describe("scoped-dependency", () => {
       expect(listScopes(new A())).toMatchObject([{ id: null, name: "AAA_3" }]);
     });
 
-    it.skip("should correctly alter name in case of inheritance", () => {
-      @scoped({ name: "A_BASE" })
-      abstract class ABase {}
-
-      @scoped({ name: "A_CHILD_1" })
-      class AChild1 extends ABase {}
-
-      @scoped()
-      class AChild2 extends ABase {}
-
-      expect(listScopes(new AChild1())).toMatchObject([{ id: null, name: "A_CHILD_1" }]);
-      expect(listScopes(new AChild2())).toMatchObject([{ id: null, name: "A_BASE" }]);
-    });
-
     it("should correctly call `onInstanceCreation`", () => {
       const onInstanceCreation = jest.fn<void, [A]>();
 
@@ -180,6 +168,44 @@ describe("scoped-dependency", () => {
       expect(onInstanceCreation).toHaveBeenNthCalledWith(2, a2);
 
       expect(onInstanceCreation).toHaveBeenCalledTimes(2);
+    });
+
+    it("shouldn't allow binding same child to multiple parents", () => {
+      @scoped()
+      class B {
+        public id = getNextId("B");
+      }
+
+      @scoped()
+      class A {
+        public id = getNextId("A");
+        public b?: B;
+      }
+
+      const a1 = new A();
+      const a2 = new A();
+      const b = new B();
+
+      expect(listScopes(a1)).toMatchObject([{ id: 0, name: "A" }]);
+      expect(listScopes(a2)).toMatchObject([{ id: 1, name: "A" }]);
+      expect(listScopes(b)).toMatchObject([{ id: 0, name: "B" }]);
+
+      a1.b = b;
+
+      expect(listScopes(b)).toMatchObject([{ id: 0, name: "A" }, { id: 0, name: "B" }]); // prettier-ignore
+
+      expect(() => {
+        a2.b = b;
+      }).toThrowError("Child instance already has set parent!");
+
+      expect(listScopes(b)).toMatchObject([{ id: 0, name: "A" }, { id: 0, name: "B" }]); // prettier-ignore
+
+      // Not really a point to throw here since the reference is not changing
+      expect(() => {
+        a1.b = b;
+      }).not.toThrow();
+
+      expect(listScopes(b)).toMatchObject([{ id: 0, name: "A" }, { id: 0, name: "B" }]); // prettier-ignore
     });
   });
 

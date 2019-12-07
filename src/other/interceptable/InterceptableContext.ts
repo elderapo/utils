@@ -6,8 +6,11 @@ export enum InterceptableContextType {
 
 export class InterceptableContext {
   private static contextTypes = new WeakMap<Object, InterceptableContextType>();
+
   private static originalToInternal = new WeakMap<Object, Object>();
   private static originalToExternal = new WeakMap<Object, Object>();
+  private static externalToOriginal = new WeakMap<Object, Object>();
+  private static internalToOriginal = new WeakMap<Object, Object>();
 
   public static setupContexts(original: Object, internal: Object, external: Object): void {
     this.contextTypes.set(original, InterceptableContextType.Original);
@@ -16,18 +19,27 @@ export class InterceptableContext {
 
     this.originalToInternal.set(original, internal);
     this.originalToExternal.set(original, external);
+    this.internalToOriginal.set(internal, original);
+    this.externalToOriginal.set(external, original);
   }
 
-  public static getContext(
-    original: Object,
-    type: InterceptableContextType.Internal | InterceptableContextType.External
-  ): Object | null {
-    const map =
-      type === InterceptableContextType.External
-        ? this.originalToExternal
-        : this.originalToInternal;
+  public static unwrap(anything: Object): Object | null {
+    const contextType = this.getContextType(anything);
 
-    return map.has(original) ? map.get(original)! : null;
+    if (!contextType) {
+      return null;
+    }
+
+    if (contextType === InterceptableContextType.Original) {
+      return anything;
+    }
+
+    const map =
+      contextType === InterceptableContextType.Internal
+        ? this.internalToOriginal
+        : this.externalToOriginal;
+
+    return map.has(anything) ? map.get(anything)! : null;
   }
 
   public static getContextType(context: Object): InterceptableContextType | null {

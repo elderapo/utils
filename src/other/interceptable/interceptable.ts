@@ -127,6 +127,10 @@ export const interceptable = <
 
       InterceptableContext.setupContexts(original, internalContext, externalContext);
 
+      if (options.afterConstruct) {
+        options.afterConstruct(original);
+      }
+
       [
         ...Object.getOwnPropertyNames(original),
         ...Object.getOwnPropertySymbols(original)
@@ -145,10 +149,6 @@ export const interceptable = <
 
         onDefineProperty(key as K, value, true);
       });
-
-      if (options.afterConstruct) {
-        options.afterConstruct(original);
-      }
 
       return externalContext;
     }

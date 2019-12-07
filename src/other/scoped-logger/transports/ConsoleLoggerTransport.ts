@@ -2,7 +2,7 @@ import * as chalk from "chalk";
 import * as PrettyError from "pretty-error";
 import { Memoize } from "typescript-memoize";
 import * as util from "util";
-import { INamespaceItem } from "../../dependency-path";
+import { IScopedContext } from "../../scoped-dependency";
 import { LogLevel } from "../LogLevel";
 import { ILoggerTransport, ILoggetTransportHandleItemOptions } from "./ILoggerTransport";
 
@@ -19,7 +19,7 @@ const logLevelFontColors = {
 
 export class ConsoleLoggerTransport implements ILoggerTransport {
   private nextNamespaceColorIndex: number = 0;
-  private namespaceColors = [
+  private scopeColors = [
     chalk.red,
     chalk.green,
     chalk.yellow,
@@ -37,13 +37,13 @@ export class ConsoleLoggerTransport implements ILoggerTransport {
 
   public constructor(private options: IConsoleLoggerTransportOptions = {}) {}
 
-  public handleItem({ level, namespaces, args }: ILoggetTransportHandleItemOptions): void {
+  public handleItem({ level, scopes, args }: ILoggetTransportHandleItemOptions): void {
     const logFN = [LogLevel.Log, LogLevel.Info].includes(level) ? console.log : console.error;
 
     const logLevelColor = logLevelFontColors[level];
 
-    const formatedNamespacesSegment = namespaces
-      .map(item => this.renderNamespaceSegment(item))
+    const formatedNamespacesSegment = scopes
+      .map(scope => this.renderNamespaceSegment(scope))
       .join(" » ");
 
     logFN(
@@ -55,14 +55,12 @@ export class ConsoleLoggerTransport implements ILoggerTransport {
     );
   }
 
-  @Memoize((arg: INamespaceItem) => `${arg.namespace}__${arg.id}`)
-  private renderNamespaceSegment(segmentInfo: INamespaceItem): string {
+  @Memoize((arg: IScopedContext) => `${arg.name}__${arg.id}`)
+  private renderNamespaceSegment(segmentInfo: IScopedContext): string {
     const str =
-      segmentInfo.id !== null
-        ? `${segmentInfo.namespace}(${segmentInfo.id})`
-        : segmentInfo.namespace;
+      segmentInfo.id !== null ? `${segmentInfo.name}(${segmentInfo.id})` : segmentInfo.name;
 
-    return this.namespaceColors[this.nextNamespaceColorIndex++ % this.namespaceColors.length](str);
+    return this.scopeColors[this.nextNamespaceColorIndex++ % this.scopeColors.length](str);
   }
 
   private formatMessageItem(item: any): string {

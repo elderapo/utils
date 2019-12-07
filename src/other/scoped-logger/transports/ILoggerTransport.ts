@@ -1,11 +1,11 @@
-import { INamespaceItem } from "../../dependency-path";
+import { IScopedContext } from "../../scoped-dependency";
 import { LogLevel } from "../LogLevel";
 import { LogFunctionArguments } from "../types";
 
 export interface ILoggetTransportHandleItemOptions {
   level: LogLevel;
   args: LogFunctionArguments;
-  namespaces: INamespaceItem[];
+  scopes: IScopedContext[];
 }
 
 export interface ILoggerTransport {

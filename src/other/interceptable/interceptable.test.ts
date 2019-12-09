@@ -693,7 +693,7 @@ describe("interceptable", () => {
   });
 
   describe("examples", () => {
-    it.only("typedi example(1)", () => {
+    it("typedi example(1)", () => {
       let nextB = 0;
       let nextA = 0;
 
@@ -724,7 +724,7 @@ describe("interceptable", () => {
 
       const main = Container.get(MainService);
 
-      console.log(main);
+      // console.log(main);
 
       expect(main.a1).toMatchObject({ id: 0, aaa: "aaa" });
       expect(main.a2).toMatchObject({ id: 1, aaa: "aaa" });

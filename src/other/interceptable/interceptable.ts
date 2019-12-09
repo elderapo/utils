@@ -20,8 +20,6 @@ const defaultInterceptableOptions = {
   allowDynamicFunctionAssigments: false
 };
 
-const originalClasses = new WeakMap<any, any>();
-
 export const interceptable = <
   C extends new (...args: any[]) => any,
   I extends InstanceType<C>,
@@ -32,15 +30,16 @@ export const interceptable = <
 ) => (OriginalClass: C): C => {
   const options = Object.assign({}, defaultInterceptableOptions, _options);
 
-  if (originalClasses.has(OriginalClass)) {
-    // It means that `OriginalClass` has been already decorated with `interceptable`.
-    // Lets get original `OriginalClass` lol...
-    OriginalClass = originalClasses.get(OriginalClass);
-  }
+  const Interceptable = class extends OriginalClass {
+    constructor(...args: any[]) {
+      super(...args);
 
-  const Interceptable = new Proxy(OriginalClass, {
-    construct(ProxiedClass, args) {
-      const original: I = new ProxiedClass(...args);
+      if (this.constructor !== Interceptable) {
+        // this class is inherited and options should be skipped for parent!
+        return;
+      }
+
+      const original: I = this as any;
 
       const onSet = (key: K, newValue: V, isInternal: boolean): boolean => {
         if (typeof newValue === "function") {
@@ -152,9 +151,8 @@ export const interceptable = <
 
       return externalContext;
     }
-  });
-
-  originalClasses.set(Interceptable, OriginalClass);
+  };
+  Object.defineProperty(Interceptable, "name", { value: OriginalClass.name });
 
   return Interceptable;
 };

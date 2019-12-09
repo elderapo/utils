@@ -1,3 +1,6 @@
+require("reflect-metadata");
+
+import { Container, Service } from "typedi";
 import { sleep } from "../../timers";
 import { IInterceptableOptions, interceptable } from "./interceptable";
 import { InterceptableContext, InterceptableContextType } from "./InterceptableContext";
@@ -686,6 +689,56 @@ describe("interceptable", () => {
 
         expect(childMocks.set).toHaveBeenCalledTimes(4);
       });
+    });
+  });
+
+  describe("examples", () => {
+    it("typedi example(1)", () => {
+      let nextB = 0;
+      let nextA = 0;
+
+      @Service({ global: true })
+      @interceptable({})
+      class ServiceB {
+        public id = nextB++;
+        public bbb: string = "bbb";
+      }
+
+      @Service({ transient: true })
+      @interceptable({})
+      class ServiceA {
+        public id = nextA++;
+        public aaa: string = "aaa";
+      }
+
+      @Service({ transient: true })
+      @interceptable({})
+      class MainService {
+        constructor(
+          public a1: ServiceA,
+          public a2: ServiceA,
+          public b1: ServiceB,
+          public b2: ServiceB
+        ) {}
+      }
+
+      const main = Container.get(MainService);
+
+      // console.log(main);
+
+      expect(main.a1).toMatchObject({ id: 0, aaa: "aaa" });
+      expect(main.a2).toMatchObject({ id: 1, aaa: "aaa" });
+
+      expect(main.b1).toMatchObject({ id: 0, bbb: "bbb" });
+      expect(main.b2).toMatchObject({ id: 0, bbb: "bbb" });
+
+      expect(main.a1).toBeInstanceOf(ServiceA);
+      expect(main.a2).toBeInstanceOf(ServiceA);
+      expect(main.a1).not.toBe(main.a2);
+
+      expect(main.b1).toBeInstanceOf(ServiceB);
+      expect(main.b2).toBeInstanceOf(ServiceB);
+      expect(main.b1).toBe(main.b2);
     });
   });
 });

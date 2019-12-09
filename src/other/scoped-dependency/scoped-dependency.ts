@@ -49,9 +49,9 @@ export const scoped = (options: IScopedOptions = {}): any => (
 
       if (ScopedInternals.isScoped(originalParent) && ScopedInternals.isScoped(originalChild)) {
         ScopedInternals.setParent(originalChild, originalParent);
-        return true;
       }
 
+      target[key] = value;
       return true;
     }
   })(originalConstructor);

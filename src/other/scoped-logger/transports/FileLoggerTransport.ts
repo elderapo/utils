@@ -1,7 +1,7 @@
 import * as path from "path";
 import { ILoggerTransport, ILoggetTransportHandleItemOptions } from "./ILoggerTransport";
 import * as jsonStringifySafe from "json-stringify-safe";
-import * as fsExtra from "fs-extra";
+import * as fs from "fs";
 // @ts-ignore
 import * as findRemoveSync from "find-remove";
 
@@ -11,12 +11,12 @@ export interface IFileLoggerTransportOptions {
 }
 
 export class FileLoggerTransport implements ILoggerTransport {
-  private logFileStream: fsExtra.WriteStream;
+  private logFileStream: fs.WriteStream;
 
   constructor(private options: IFileLoggerTransportOptions) {
-    fsExtra.ensureDirSync(options.directory);
+    fs.mkdirSync(options.directory, { recursive: true });
 
-    this.logFileStream = fsExtra.createWriteStream(
+    this.logFileStream = fs.createWriteStream(
       path.join(options.directory, this.generateLogFileName())
     );
 

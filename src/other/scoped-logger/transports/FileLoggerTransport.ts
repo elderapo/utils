@@ -1,9 +1,7 @@
+import * as fs from "fs";
+import * as jsonStringifySafe from "json-stringify-safe";
 import * as path from "path";
 import { ILoggerTransport, ILoggetTransportHandleItemOptions } from "./ILoggerTransport";
-import * as jsonStringifySafe from "json-stringify-safe";
-import * as fs from "fs";
-// @ts-ignore
-import * as findRemoveSync from "find-remove";
 
 export interface IFileLoggerTransportOptions {
   directory: string;
@@ -21,6 +19,9 @@ export class FileLoggerTransport implements ILoggerTransport {
     );
 
     if (typeof options.deleteFilesOlderThan === "number") {
+      // @WORKAROUND: this is a workaround so whole @elderapo/utils can work in browser
+      const findRemoveSync = require("find-remove");
+
       findRemoveSync(options.directory, {
         extensions: ".log",
         age: { seconds: options.deleteFilesOlderThan / 1000 }

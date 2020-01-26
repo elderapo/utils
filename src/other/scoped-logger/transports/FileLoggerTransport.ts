@@ -1,31 +1,31 @@
-import * as fs from "fs";
-import * as jsonStringifySafe from "json-stringify-safe";
-import * as path from "path";
-import { ILoggerTransport, ILoggetTransportHandleItemOptions } from "./ILoggerTransport";
+import fs from "fs"
+import jsonStringifySafe from "json-stringify-safe"
+import * as path from "path"
+import { ILoggerTransport, ILoggetTransportHandleItemOptions } from "./ILoggerTransport"
 
 export interface IFileLoggerTransportOptions {
-  directory: string;
-  deleteFilesOlderThan?: number;
+  directory: string
+  deleteFilesOlderThan?: number
 }
 
 export class FileLoggerTransport implements ILoggerTransport {
-  private logFileStream: fs.WriteStream;
+  private logFileStream: fs.WriteStream
 
   constructor(private options: IFileLoggerTransportOptions) {
-    fs.mkdirSync(options.directory, { recursive: true });
+    fs.mkdirSync(options.directory, { recursive: true })
 
     this.logFileStream = fs.createWriteStream(
       path.join(options.directory, this.generateLogFileName())
-    );
+    )
 
     if (typeof options.deleteFilesOlderThan === "number") {
       // @WORKAROUND: this is a workaround so whole @elderapo/utils can work in browser
-      const findRemoveSync = require("find-remove");
+      const findRemoveSync = require("find-remove")
 
       findRemoveSync(options.directory, {
         extensions: ".log",
         age: { seconds: options.deleteFilesOlderThan / 1000 }
-      });
+      })
     }
   }
 
@@ -44,31 +44,31 @@ export class FileLoggerTransport implements ILoggerTransport {
             name: value.name,
             message: value.message,
             stack: value.stack
-          };
+          }
         }
 
-        return value;
+        return value
       }
-    );
+    )
 
-    this.logFileStream.write(serialized + "\n");
+    this.logFileStream.write(serialized + "\n")
 
     // write serialized + \n
   }
 
   private generateLogFileName(): string {
-    const time = new Date();
+    const time = new Date()
 
-    const pad = (num: number, length: number = 2) => num.toString().padStart(length, "0");
+    const pad = (num: number, length: number = 2) => num.toString().padStart(length, "0")
 
-    const year = time.getFullYear();
-    const month = pad(time.getMonth() + 1);
-    const day = pad(time.getDate());
-    const hour = pad(time.getHours());
-    const minute = pad(time.getMinutes());
-    const seconds = pad(time.getSeconds());
-    const miliseconds = pad(time.getMilliseconds(), 3);
+    const year = time.getFullYear()
+    const month = pad(time.getMonth() + 1)
+    const day = pad(time.getDate())
+    const hour = pad(time.getHours())
+    const minute = pad(time.getMinutes())
+    const seconds = pad(time.getSeconds())
+    const miliseconds = pad(time.getMilliseconds(), 3)
 
-    return `${year}-${month}-${day}_${hour}:${minute}:${seconds}:${miliseconds}.log`;
+    return `${year}-${month}-${day}_${hour}:${minute}:${seconds}:${miliseconds}.log`
   }
 }

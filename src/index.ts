@@ -1,4 +1,5 @@
 export * from "./decorators";
+export * from "./event-emitter";
 export * from "./number-utils";
 export * from "./other";
 export * from "./promise-helpers";

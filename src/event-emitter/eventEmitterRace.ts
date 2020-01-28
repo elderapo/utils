@@ -2,7 +2,10 @@ import * as Emittery from "emittery";
 
 type Values<X> = X[keyof X];
 
-export type EventRaceResult<EVENTS extends {}, REGISTERED_EVENT_IDS> = Extract<
+export type EventRaceResult<
+  EVENTS extends {},
+  REGISTERED_EVENT_IDS extends ReadonlyArray<keyof EVENTS>
+> = Extract<
   Values<
     {
       [K in keyof EVENTS]: {
@@ -11,7 +14,7 @@ export type EventRaceResult<EVENTS extends {}, REGISTERED_EVENT_IDS> = Extract<
       };
     }
   >,
-  { event: REGISTERED_EVENT_IDS }
+  { event: REGISTERED_EVENT_IDS[number] }
 >;
 
 export const eventEmitterRace = async <

@@ -1,10 +1,10 @@
-import chalk from "chalk"
-import * as PrettyError from "pretty-error"
-import { Memoize } from "typescript-memoize"
-import * as util from "util"
-import { IScopedContext } from "../../scoped-dependency"
-import { LogLevel } from "../LogLevel"
-import { ILoggerTransport, ILoggetTransportHandleItemOptions } from "./ILoggerTransport"
+import chalk from "chalk";
+import * as PrettyError from "pretty-error";
+import * as util from "util";
+import { IScopedContext } from "../../scoped-dependency";
+import { LogLevel } from "../LogLevel";
+import { ILoggerTransport, ILoggetTransportHandleItemOptions } from "./ILoggerTransport";
+import { memoize } from "../../../decorators";
 
 export interface IConsoleLoggerTransportOptions {
   // enable color etc
@@ -15,10 +15,10 @@ const logLevelFontColors = {
   [LogLevel.Info]: "blue",
   [LogLevel.Warn]: "orange",
   [LogLevel.Error]: "red"
-}
+};
 
 export class ConsoleLoggerTransport implements ILoggerTransport {
-  private nextNamespaceColorIndex: number = 0
+  private nextNamespaceColorIndex: number = 0;
   private scopeColors = [
     chalk.red,
     chalk.green,
@@ -32,19 +32,19 @@ export class ConsoleLoggerTransport implements ILoggerTransport {
     chalk.blueBright,
     chalk.magentaBright,
     chalk.cyanBright
-  ]
-  private prettyError = new PrettyError()
+  ];
+  private prettyError = new PrettyError();
 
   public constructor(private options: IConsoleLoggerTransportOptions = {}) {}
 
   public handleItem({ level, scopes, args }: ILoggetTransportHandleItemOptions): void {
-    const logFN = [LogLevel.Log, LogLevel.Info].includes(level) ? console.log : console.error
+    const logFN = [LogLevel.Log, LogLevel.Info].includes(level) ? console.log : console.error;
 
-    const logLevelColor = logLevelFontColors[level]
+    const logLevelColor = logLevelFontColors[level];
 
     const formatedNamespacesSegment = scopes
       .map(scope => this.renderNamespaceSegment(scope))
-      .join(" » ")
+      .join(" » ");
 
     logFN(
       chalk.bold
@@ -52,32 +52,32 @@ export class ConsoleLoggerTransport implements ILoggerTransport {
         .padEnd(24),
       `${formatedNamespacesSegment}:`,
       ...args.map(item => this.formatMessageItem(item))
-    )
+    );
   }
 
-  @Memoize((arg: IScopedContext) => `${arg.name}__${arg.id}`)
+  @memoize((arg: IScopedContext) => `${arg.name}__${arg.id}`)
   private renderNamespaceSegment(segmentInfo: IScopedContext): string {
     const str =
-      segmentInfo.id !== null ? `${segmentInfo.name}(${segmentInfo.id})` : segmentInfo.name
+      segmentInfo.id !== null ? `${segmentInfo.name}(${segmentInfo.id})` : segmentInfo.name;
 
-    return this.scopeColors[this.nextNamespaceColorIndex++ % this.scopeColors.length](str)
+    return this.scopeColors[this.nextNamespaceColorIndex++ % this.scopeColors.length](str);
   }
 
   private formatMessageItem(item: any): string {
     if (typeof item === "string" || typeof item === "number" || typeof item === "boolean") {
-      return item.toString()
+      return item.toString();
     }
 
     if (item instanceof Error) {
-      return `\n${this.prettyError.render(item)}`
+      return `\n${this.prettyError.render(item)}`;
     }
 
     const inspectResult = util.inspect(item, {
       depth: 5,
       showHidden: true,
       colors: true
-    })
+    });
 
-    return inspectResult.includes("\n") ? `---wrapping-line---\n${inspectResult}` : inspectResult
+    return inspectResult.includes("\n") ? `---wrapping-line---\n${inspectResult}` : inspectResult;
   }
 }

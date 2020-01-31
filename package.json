@@ -134,7 +134,6 @@
     "pretty-error": "^2.1.1",
     "reflect-metadata": "^0.1.13",
     "ts-custom-error": "^3.1.1",
-    "typescript-memoize": "^1.0.0-alpha.3",
     "uuid": "^3.3.3"
   }
 }

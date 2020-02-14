@@ -1,13 +1,11 @@
-/** @internal */
-
 import { IScopedContext } from "./scoped-dependency";
 
 // Helper types that has been created so it's easier to grasp wtf is going on...
 interface IScoped extends Object {
   id?: string | number | null;
 }
-interface IScopedParent extends IScoped {}
-interface IScopedChild extends IScoped {}
+interface IScopedParent extends IScoped { }
+interface IScopedChild extends IScoped { }
 
 // Metadata stores
 const customNames = new WeakMap<IScoped, string>();
@@ -39,7 +37,7 @@ export class ScopedInternals {
         name: customNames.has(current)
           ? customNames.get(current)!
           : // : current.constructor.name.replace("bound ", "")
-            current.constructor.name
+          current.constructor.name
       });
 
       current = this.getParent(current);

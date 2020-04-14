@@ -23,7 +23,9 @@ describe("eventEmitterRace", () => {
       });
     });
 
-    await expect(eventEmitterRace(ee, [MyEvent.One, MyEvent.Two] as const)).resolves.toMatchObject({
+    await expect(
+      eventEmitterRace(ee, [MyEvent.Three, MyEvent.Two] as const)
+    ).resolves.toMatchObject({
       event: MyEvent.Two,
       data: { bbb: 123 }
     });

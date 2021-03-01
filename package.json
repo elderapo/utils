@@ -130,7 +130,7 @@
     "emittery": "^0.6.0",
     "find-remove": "^2.0.0",
     "json-stringify-safe": "^5.0.1",
-    "mathjs": "^6.2.3",
+    "mathjs": "^9.2.0",
     "pretty-error": "^2.1.1",
     "reflect-metadata": "^0.1.13",
     "ts-custom-error": "^3.1.1",
